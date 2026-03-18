@@ -22,17 +22,19 @@ Telemetry is the values you can see on the driver hub (Think system.out.println(
 
 Adding @Disabled - makes it not show up in program selections
  */
+
 @TeleOp
-public class HelloWorld extends OpMode {
+public class Test1 extends OpMode {
 
     @Override
     public void init() {
-        telemetry.addData("Hello: ", "Carl");
+        telemetry.addData("Hello", "Carl");
     }
 
     @Override
     public void loop() {
-
+        telemetry.addData("Status", "Running");
+        telemetry.update();
     }
 }
 
