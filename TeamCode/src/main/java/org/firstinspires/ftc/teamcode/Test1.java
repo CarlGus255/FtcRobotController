@@ -21,9 +21,15 @@ Telemetry is the values you can see on the driver hub (Think system.out.println(
 @Override means it overrides something (I don't remember)
 
 Adding @Disabled - makes it not show up in program selections
+
+TO ADD A MOTOR:
+Inside the class, write "Private DCmotor [motor name};"
+Private means it's only in that class
+DCmotor should import something
+Name the motor without any spaces, using captials, like LeftFrontMotor, for example
  */
 
-@TeleOp
+@TeleOp(name="Test1")
 public class Test1 extends OpMode {
 
     @Override
