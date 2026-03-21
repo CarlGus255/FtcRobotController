@@ -3,7 +3,7 @@ package org.firstinspires.ftc.teamcode;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 @TeleOp(name="CarlDiffySwervePodV2", group="CarlDiffySwervePlan")
-public class CarlDiffySwerveRobotPodV2 extends OpMode {
+public class CarlDiffySwervePodV2 extends OpMode {
 
     double translation = 0;
     double rotation = 0;
@@ -23,6 +23,8 @@ public class CarlDiffySwerveRobotPodV2 extends OpMode {
     @Override
     public void init() {
         motors.init(hardwareMap);
+        motors.resetTopMotor();
+        motors.resetBottomMotor();
     }
 
     @Override
@@ -77,6 +79,8 @@ public class CarlDiffySwerveRobotPodV2 extends OpMode {
             //reset motors
             motors.resetBottomMotor();
             motors.resetTopMotor();
+            //reset heading so it doesn't snap to old target heading
+            seekHeading=0;
 
             //telemetry for sanity's sake
             telemetry.addData("Motors are:", "Reset!");
@@ -89,8 +93,8 @@ public class CarlDiffySwerveRobotPodV2 extends OpMode {
         telemetry.addData("isHoming is", isHoming);
 
         //set motor power based on translation and rotation values
-        motors.setTopMotor(translation + rotation);
-        motors.setBottomMotor(-translation + rotation);
+        motors.setTopMotor((translation + rotation)*0.25);
+        motors.setBottomMotor((-translation + rotation)*0.25);
     }
 
 }
