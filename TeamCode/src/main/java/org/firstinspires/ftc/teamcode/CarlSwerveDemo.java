@@ -21,21 +21,26 @@ public class CarlSwerveDemo extends OpMode {
     public void loop() {
 
 
+        telemetry.addData("Increment is: ", Increment);
 
         //When you press up on the Dpad it will increase, as long as it is below 10 (Max is 10)
         if (gamepad1.dpad_up && !LastDPadUp && Increment < 10) {
 
             Increment ++;
+            telemetry.addData("Increment is:", "Increasing");
         }
 
         //When you press down on the Dpad it will decrease, as long as it above 0 (Lowest is 0) (If motors got negative, they spin backwards)
         if (gamepad1.dpad_down && !LastDPadDown && Increment > 0) {
 
             Increment --;
+            telemetry.addData("Increment is:", "Decreasing");
         }
 
         LastDPadUp = gamepad1.dpad_up;
         LastDPadDown = gamepad1.dpad_down;
+
+
 
 
         motors.SetSwerveSpeed(0.1 * Increment);
