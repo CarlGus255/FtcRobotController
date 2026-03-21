@@ -1,24 +1,24 @@
 package org.firstinspires.ftc.teamcode;
 
-import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DigitalChannel;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 public class MotorsCarlDiffySwerve {
 
-    private DcMotor topMotor;
-    private DcMotor bottomMotor;
+    private DcMotorEx topMotor;
+    private DcMotorEx bottomMotor;
 
     private DigitalChannel homingSwitch;
     double topMotorTicksPerRev;
     double bottomMotorTicksPerRev;
 
     public void init(HardwareMap hwMap){
-        topMotor = hwMap.get(DcMotor.class, "bottomMotor");
-        topMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        topMotor = hwMap.get(DcMotorEx.class, "topMotor");
+        topMotor.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
 
-        bottomMotor = hwMap.get(DcMotor.class, "topMotor");
-        bottomMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        bottomMotor = hwMap.get(DcMotorEx.class, "bottomMotor");
+        bottomMotor.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
 
         homingSwitch = hwMap.get(DigitalChannel.class, "homingSwitch");
         homingSwitch.setMode(DigitalChannel.Mode.INPUT);
@@ -47,11 +47,19 @@ public class MotorsCarlDiffySwerve {
     }
 
     public void resetTopMotor () {
-        topMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        topMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        topMotor.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
+        topMotor.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
     }
     public void resetBottomMotor () {
-        bottomMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        bottomMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        bottomMotor.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
+        bottomMotor.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
+    }
+
+    public double getTopMotorVelocity () {
+        return (topMotor.getVelocity())*60/topMotorTicksPerRev;
+    }
+
+    public double getBottomMotorVelocity () {
+        return bottomMotor.getVelocity()*60/bottomMotorTicksPerRev;
     }
 }
