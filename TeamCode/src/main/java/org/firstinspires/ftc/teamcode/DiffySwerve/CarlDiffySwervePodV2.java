@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode;
+package org.firstinspires.ftc.teamcode.DiffySwerve;
 
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
@@ -14,7 +14,7 @@ public class CarlDiffySwervePodV2 extends OpMode {
     double proportionalHeading = 0;
     boolean lastX = false;
     double headingDifference = 90;
-    double rotationAcceleration = 1;
+    double rotationAcceleration = 0.5;
 
 
 
@@ -37,6 +37,7 @@ public class CarlDiffySwervePodV2 extends OpMode {
         }
         lastX = gamepad1.x;
 
+        //Seek a heading
         proportionalHeading = (heading-seekHeading)/(headingDifference*2);
         rotation = -proportionalHeading * rotationAcceleration;
 
@@ -93,8 +94,8 @@ public class CarlDiffySwervePodV2 extends OpMode {
         telemetry.addData("isHoming is", isHoming);
 
         //set motor power based on translation and rotation values
-        motors.setTopMotor((translation + rotation)*0.25);
-        motors.setBottomMotor((-translation + rotation)*0.25);
+        motors.setTopMotor((translation + rotation));
+        motors.setBottomMotor((-translation + rotation));
     }
 
 }
