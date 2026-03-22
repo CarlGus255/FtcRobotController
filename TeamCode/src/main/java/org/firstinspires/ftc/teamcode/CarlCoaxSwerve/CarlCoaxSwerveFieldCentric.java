@@ -3,8 +3,8 @@ package org.firstinspires.ftc.teamcode.CarlCoaxSwerve;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
-@TeleOp(group = "Coax")
-public class CarlCoaxSwervePracticeRobotCentric extends OpMode {
+@TeleOp(group="Coax")
+public class CarlCoaxSwerveFieldCentric extends OpMode {
 
     //Defines translation (Wheel movement) and rotation (Wheel swivel) variables.
     double translation = 0;
@@ -14,11 +14,11 @@ public class CarlCoaxSwervePracticeRobotCentric extends OpMode {
     double rotationRight = 0;
 
     //Set in degrees to use properly with the proportional factor.
-    double headingLeft = 0;
-    double headingRight = 0;
+    double fieldHeadingLeft = 0;
+    double fieldHeadingRight = 0;
     double seekHeading = 0;
-    double proportionalHeadingLeft = 0;
-    double proportionalHeadingRight = 0;
+    double proportionalfieldHeadingLeft = 0;
+    double proportionalfieldHeadingRight = 0;
     double rotationalAcceleration = 1;
     //For testing purposes with button
     boolean lastY = false;
@@ -31,7 +31,7 @@ public class CarlCoaxSwervePracticeRobotCentric extends OpMode {
     double transformLeft;
     double lastTransformLeft;
     int incrementLeft;
-    
+
     double transformRight;
     double lastTransformRight;
     int incrementRight;
@@ -41,6 +41,7 @@ public class CarlCoaxSwervePracticeRobotCentric extends OpMode {
     double proportionalYaw = 0;
     double yawAcceleration = 0;
     double yawInput = 0;
+ 
 
 
     MotorsCarlCoaxSwervePractice motors = new MotorsCarlCoaxSwervePractice();
@@ -99,31 +100,8 @@ public class CarlCoaxSwervePracticeRobotCentric extends OpMode {
             incrementRight --;
         }
         lastTransformRight = motors.getRightPot();
-        
-        //tracks heading
-        headingLeft = motors.getLeftPot() + (270*incrementLeft);
-        headingRight = motors.getRightPot() + (270*incrementRight);
-        //defines and tracks proportionalHeading
-        proportionalHeadingLeft = seekHeading - headingLeft;
-        proportionalHeadingRight = seekHeading - headingRight;
-        //implements proportionalHeading with rotation
-        rotationLeft = proportionalHeadingLeft*rotationalAcceleration/360;
-        rotationRight = proportionalHeadingRight*rotationalAcceleration/360;
 
-        //Seek the shortest path
-        while (proportionalHeadingLeft > 180) {
-            proportionalHeadingLeft -= 360;
-        }
-        while (proportionalHeadingLeft < -180) {
-            proportionalHeadingLeft += 360;
-        }
 
-        while (proportionalHeadingRight > 180) {
-            proportionalHeadingRight -= 360;
-        }
-        while (proportionalHeadingRight < -180) {
-            proportionalHeadingRight += 180;
-        }
 
         //Change robot yaw using gamepad
         yawInput = -gamepad1.right_stick_y;
@@ -138,8 +116,35 @@ public class CarlCoaxSwervePracticeRobotCentric extends OpMode {
         //implement changes to robot yaw
         translationLeft = translation - (proportionalYaw*yawAcceleration)/360;
         translationRight = translation + (proportionalYaw*yawAcceleration)/360;
+        
+        //tracks heading
+        fieldHeadingLeft = (motors.getLeftPot() + (270*incrementLeft))+robotYaw;
+        fieldHeadingRight = (motors.getRightPot() + (270*incrementRight))+robotYaw;
+        //defines and tracks proportionalHeading
+        proportionalfieldHeadingLeft = seekHeading - fieldHeadingLeft;
+        proportionalfieldHeadingRight = seekHeading - fieldHeadingRight;
 
-        //powers the module
+
+        //Seek the shortest path
+        while (proportionalfieldHeadingLeft > 180) {
+            proportionalfieldHeadingLeft -= 360;
+        }
+        while (proportionalfieldHeadingLeft < -180) {
+            proportionalfieldHeadingLeft += 360;
+        }
+
+        while (proportionalfieldHeadingRight > 180) {
+            proportionalfieldHeadingRight -= 360;
+        }
+        while (proportionalfieldHeadingRight < -180) {
+            proportionalfieldHeadingRight += 180;
+        }
+
+        //implements proportionalHeading with rotation
+        rotationLeft = proportionalfieldHeadingLeft*rotationalAcceleration/360;
+        rotationRight = proportionalfieldHeadingRight*rotationalAcceleration/360;
+
+        //powers the modules
         motors.runLeftMotor(translationLeft);
         motors.runLeftServo(rotationLeft);
         motors.runRightMotor(translationRight);
