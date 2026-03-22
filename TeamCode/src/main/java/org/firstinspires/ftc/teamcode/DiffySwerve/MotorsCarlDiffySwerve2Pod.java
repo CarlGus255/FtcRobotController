@@ -42,6 +42,7 @@ public class MotorsCarlDiffySwerve2Pod {
             LeftBottomMotorTicksPerRev = LeftBottomMotor.getMotorType().getTicksPerRev();
             RightTopMotorTicksPerRev = RightTopMotor.getMotorType().getTicksPerRev();
             RightBottomMotorTicksPerRev = RightBottomMotor.getMotorType().getTicksPerRev();
+
         }
 
 
