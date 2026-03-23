@@ -1,9 +1,22 @@
 package org.firstinspires.ftc.teamcode.CarlCoaxSwerve;
 
+import android.util.Size;
+
 import com.qualcomm.robotcore.hardware.AnalogInput;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
+
+import org.firstinspires.ftc.robotcore.external.Telemetry;
+import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
+import org.firstinspires.ftc.vision.VisionPortal;
+import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
+import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class MotorsCarlCoaxSwervePractice {
     private CRServo LeftServo;
@@ -14,6 +27,7 @@ public class MotorsCarlCoaxSwervePractice {
     private AnalogInput RightPot;
     private AnalogInput LeftPot;
     double ticksPerRev = 8192;
+
 
 
     public void init(HardwareMap hwMap) {
@@ -34,6 +48,8 @@ public class MotorsCarlCoaxSwervePractice {
 
         // revEncoder1.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         // revEncoder1.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
+
     }
 
     public void runLeftServo (double power) {

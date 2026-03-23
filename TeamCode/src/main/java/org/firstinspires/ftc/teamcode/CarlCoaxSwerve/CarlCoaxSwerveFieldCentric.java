@@ -3,6 +3,8 @@ package org.firstinspires.ftc.teamcode.CarlCoaxSwerve;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
+import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
+
 @TeleOp(group="Coax")
 public class CarlCoaxSwerveFieldCentric extends OpMode {
 
@@ -41,18 +43,35 @@ public class CarlCoaxSwerveFieldCentric extends OpMode {
     double proportionalYaw = 0;
     double yawAcceleration = 0;
     double yawInput = 0;
+    //For automatic positioning
+    double fieldX;
+    double fieldY;
+    double posX1 = 10;
+    double posY1 = 10;
+    double posOrient1 = 45;
+    double changeX = 0;
+    double changeY = 0;
+    boolean isGoingPos1 = false;
+    boolean lastDPadUp = false;
  
 
 
     MotorsCarlCoaxSwervePractice motors = new MotorsCarlCoaxSwervePractice();
+    CarlCoaxSwerveFieldCentricPos pos = new CarlCoaxSwerveFieldCentricPos();
+    WebCamCarlCoaxSwerve april = new WebCamCarlCoaxSwerve();
 
     @Override
     public void init() {
         motors.init(hardwareMap);
+        april.init(hardwareMap, telemetry);
     }
 
     @Override
     public void loop() {
+        april.update();
+
+        AprilTagDetection id20 = april.getTagBySpecificId(20);
+        april.displayDetectionTelemetry(id20);
         /*
         turns left joystick into vector input. This is the direction value. It is normalized so straight up on the gamepad is 0
         degrees, then increases going counter-clockwise up to 360.
@@ -113,13 +132,39 @@ public class CarlCoaxSwerveFieldCentric extends OpMode {
         seekYaw = seekYaw + (yawInput*3);
         //Need to use odometry to get robotYaw!
         proportionalYaw = seekYaw - robotYaw;
-        //implement changes to robot yaw
-        translationLeft = translation - (proportionalYaw*yawAcceleration)/360;
-        translationRight = translation + (proportionalYaw*yawAcceleration)/360;
+
         
         //tracks heading
         fieldHeadingLeft = (motors.getLeftPot() + (270*incrementLeft))+robotYaw;
         fieldHeadingRight = (motors.getRightPot() + (270*incrementRight))+robotYaw;
+
+        //Robot going to position function by pressing up on Dpad controller 1
+        if (gamepad1.dpad_up && !lastDPadUp) {
+            isGoingPos1 = true;
+        }
+        if (isGoingPos1) {
+            changeX = posX1 - fieldX;
+            changeY = posY1 - fieldY;
+
+            seekHeading = pos.runRobotToDirection(fieldX,fieldY);
+            translation = pos.runRobotToTranslation(fieldX,fieldY);
+            seekYaw = posOrient1;
+            yawInput = 0;
+        }
+        if (changeX <= 2 && changeY <= 2) {
+            isGoingPos1 = false;
+        }
+        lastDPadUp = gamepad1.dpad_up;
+
+
+        //implements proportionalHeading with rotation
+        rotationLeft = proportionalfieldHeadingLeft*rotationalAcceleration/360;
+        rotationRight = proportionalfieldHeadingRight*rotationalAcceleration/360;
+
+        //implement changes to robot yaw
+        translationLeft = translation - (proportionalYaw*yawAcceleration)/360;
+        translationRight = translation + (proportionalYaw*yawAcceleration)/360;
+
         //defines and tracks proportionalHeading
         proportionalfieldHeadingLeft = seekHeading - fieldHeadingLeft;
         proportionalfieldHeadingRight = seekHeading - fieldHeadingRight;
@@ -139,10 +184,6 @@ public class CarlCoaxSwerveFieldCentric extends OpMode {
         while (proportionalfieldHeadingRight < -180) {
             proportionalfieldHeadingRight += 180;
         }
-
-        //implements proportionalHeading with rotation
-        rotationLeft = proportionalfieldHeadingLeft*rotationalAcceleration/360;
-        rotationRight = proportionalfieldHeadingRight*rotationalAcceleration/360;
 
         //powers the modules
         motors.runLeftMotor(translationLeft);
