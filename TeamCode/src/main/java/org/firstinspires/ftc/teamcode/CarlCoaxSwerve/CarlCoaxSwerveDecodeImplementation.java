@@ -37,6 +37,19 @@ public class CarlCoaxSwerveDecodeImplementation  {
     To implement the swerve function which runs to position based on the current design, we need a transition from velocity inputs to
     position inputs. This is done by the three swerve implement transformation functions, with each function returning its own value.
     */
+    double xIncrease = 0;
+    double seekFieldX; 
+    double xVelAcceleration; //Tune to achieve X scaling
+
+    double yIncrease = 0;
+    double seekFieldY;
+    double yVelAcceleration; //Tune to achieve X scaling
+
+
+    double yawIncrease = 0;
+    double seekFieldYaw;
+    double yawVelAcceleration; //Tune to achieve X scaling
+
 
     /*
     public double swerveImplementTransformationX (double fieldXVelocity, double fieldYVelocity, double fieldYawVelocity) {
@@ -92,7 +105,8 @@ public class CarlCoaxSwerveDecodeImplementation  {
             fieldChangeHeading += 360;
         }
 
-        //Optimization - wheel polarity flipping. Combines overrotation with flipping the direction of wheel spin. I don't prefer, but we can see.
+        //Optimization - wheel polarity flipping. Combines overrotation with flipping the direction of wheel spin. I don't prefer, but we can see. It doesn't work for differential swerve very wheel because of chopiness due to fast wheel rotation capabilities, but with the slower wheel rotation with coaxial it's probably better
+
         /*
 
         Wheel polarity code
@@ -102,5 +116,33 @@ public class CarlCoaxSwerveDecodeImplementation  {
         motors.runRightMotor(translationRight);
         motors.runLeftServo(fieldChangeHeading);
         motors.runRightServo(fieldChangeHeading);
+    }
+
+    /*
+    Converting velocity to position for OpMode implementation. It tracks the last position, and depending on the VelAcceleration, it
+    changes the position values, to be input to the swerveImplementation. This allows for both TeleOp control, autonomous control, and
+    to seek field positions
+     */
+    public double swerveImplementaitonXVelocityToXPos (double xVelocity) {
+        if (xVelocity > 0 || xVelocity < 0) {
+            xIncrease = xIncrease + (xVelAcceleration * xVelocity);
+        }
+        seekFieldX = fieldX + xIncrease;
+        return seekFieldX;
+    }
+
+    public double swerveImplementaitonYVelocityToYPos (double yVelocity) {
+        if (yVelocity > 0 || yVelocity < 0) {
+            yIncrease = yIncrease + (yVelAcceleration * yVelocity);
+        }
+        seekFieldY = fieldY + yIncrease;
+        return seekFieldY;
+    }
+    public double swerveImplementaitonYawVelocityToYawPos (double yawVelocity) {
+        if (yawVelocity > 0 || yawVelocity < 0) {
+            yawIncrease = yawIncrease + (yawVelAcceleration * yawVelocity);
+        }
+        seekFieldYaw = fieldYaw + yawIncrease;
+        return seekFieldYaw;
     }
 }
