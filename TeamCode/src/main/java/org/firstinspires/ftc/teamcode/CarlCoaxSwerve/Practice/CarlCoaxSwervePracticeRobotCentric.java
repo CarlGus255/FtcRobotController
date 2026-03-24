@@ -1,7 +1,9 @@
-package org.firstinspires.ftc.teamcode.CarlCoaxSwerve;
+package org.firstinspires.ftc.teamcode.CarlCoaxSwerve.Practice;
 
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+
+import org.firstinspires.ftc.teamcode.CarlCoaxSwerve.MotorsCarlCoaxSwervePractice;
 
 @TeleOp(group = "Coax")
 public class CarlCoaxSwervePracticeRobotCentric extends OpMode {

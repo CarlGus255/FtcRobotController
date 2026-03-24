@@ -1,4 +1,6 @@
-package org.firstinspires.ftc.teamcode.CarlCoaxSwerve;
+package org.firstinspires.ftc.teamcode.CarlCoaxSwerve.Practice;
+
+import org.firstinspires.ftc.teamcode.CarlCoaxSwerve.MotorsCarlCoaxSwervePractice;
 
 public class CarlCoaxSwerveFieldCentricPos {
     MotorsCarlCoaxSwervePractice motors = new MotorsCarlCoaxSwervePractice();

@@ -1,8 +1,11 @@
-package org.firstinspires.ftc.teamcode.DiffySwerve;
+package org.firstinspires.ftc.teamcode.DiffySwerve.OldPractice;
 
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+
+import org.firstinspires.ftc.teamcode.DiffySwerve.MotorsCarlDiffySwerve;
+
 @Disabled
 @TeleOp(name="CarlDiffySwervePodV2", group="CarlDiffySwervePlan")
 public class CarlDiffySwervePodV2 extends OpMode {
