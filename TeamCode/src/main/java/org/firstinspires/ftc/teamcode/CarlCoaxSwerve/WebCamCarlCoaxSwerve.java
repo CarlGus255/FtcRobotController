@@ -21,9 +21,9 @@ public class WebCamCarlCoaxSwerve {
     private List<AprilTagDetection> detectedTags = new ArrayList<>();
     private Telemetry telemetry;
 
-    public void init(HardwareMap hwMap, Telemetry telemetry) {
 
-        this.telemetry = telemetry;
+    public void init(HardwareMap hwMap) {
+
         aprilTagProcessor = new AprilTagProcessor.Builder()
                 .setDrawTagID(true)
                 .setDrawTagOutline(true)
@@ -74,5 +74,17 @@ public class WebCamCarlCoaxSwerve {
         }
         // end for() loop
     }
+    public Double getAprilDistance(int id) {
+        AprilTagDetection tag = getTagBySpecificId(id);
+        if (tag == null) return null;
+        return tag.ftcPose.z;
+    }
+
+    public Double getAprilBearing (int id) {
+        AprilTagDetection tag = getTagBySpecificId(id);
+        if (tag == null) return null;
+        return tag.ftcPose.bearing;
+    }
+
 
 }

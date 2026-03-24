@@ -1,7 +1,8 @@
 package org.firstinspires.ftc.teamcode.CarlCoaxSwerve;
 
-public class CarlCoaxSwerveDecodeImplementation  {
-    MotorsCarlCoaxSwervePractice motors = new MotorsCarlCoaxSwervePractice();
+public class CarlCoaxSwerveDecodeImplementation {
+    MotorsCarlCoaxSwervePractice motors = new MotorsCarlCoaxSwervePractice ();
+    CarlOdometryExampleImplementation odo = new CarlOdometryExampleImplementation();
 
     //Use the odometry class to get the actual fieldX, fieldY, and Yaw variables.
     double fieldX; //would be equal to the odo field x, and so on for the other variables
@@ -17,7 +18,7 @@ public class CarlCoaxSwerveDecodeImplementation  {
     double fieldChangeHeading; //Transforms from robot centric to field centric heading before implementation
 
     //XY locomotion
-    double changeXYAcceleration = 36; //Think 36 inches means motor power of one, then scales linearly.
+    double changeXYAcceleration = 10; //Think 10 CM means motor power is set to one, then scales linearly as you approach the desired value.
     double changeX; //Makes the robot try to move a certain amount in the X direction
     double changeY; //Makes the robot try to move a certain amount in the Y direction
 
@@ -50,6 +51,10 @@ public class CarlCoaxSwerveDecodeImplementation  {
     double seekFieldYaw;
     double yawVelAcceleration; //Tune to achieve X scaling
 
+    double xPos1 = 0;
+    double yPos1 = 0;
+    double yawPos1 = -45;
+
 
     /*
     public double swerveImplementTransformationX (double fieldXVelocity, double fieldYVelocity, double fieldYawVelocity) {
@@ -58,6 +63,11 @@ public class CarlCoaxSwerveDecodeImplementation  {
     */
 
     public void swerveImplement (double seekFieldX, double seekFieldY, double seekFieldYaw) {
+
+        //Implements odometry
+        fieldX = odo.getFieldX();
+        fieldY = odo.getFieldY();
+        fieldYaw = odo.getFieldYaw();
 
         //These values are how we will manipulate motor power to reach the seek position, using a partial PID (Only P)
         //Change Acceleration scales the change from inches (or whatever field units) to a unitless number for motor power.
@@ -121,7 +131,8 @@ public class CarlCoaxSwerveDecodeImplementation  {
     /*
     Converting velocity to position for OpMode implementation. It tracks the last position, and depending on the VelAcceleration, it
     changes the position values, to be input to the swerveImplementation. This allows for both TeleOp control, autonomous control, and
-    to seek field positions
+    to seek field positions. For deadband, we could instead change the if statement conditions instead of using the magnitude earlier on.
+    Example: if (xVelocity > 0.05 ...)
      */
     public double swerveImplementaitonXVelocityToXPos (double xVelocity) {
         if (xVelocity > 0 || xVelocity < 0) {
@@ -145,4 +156,6 @@ public class CarlCoaxSwerveDecodeImplementation  {
         seekFieldYaw = fieldYaw + yawIncrease;
         return seekFieldYaw;
     }
+
+
 }
