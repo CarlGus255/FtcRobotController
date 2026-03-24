@@ -1,8 +1,11 @@
 package org.firstinspires.ftc.teamcode.CarlCoaxSwerve;
 
+import org.firstinspires.ftc.teamcode.CarlCoaxSwerve.Practice.CarlCoaxSwerveWheelHeading;
+
 public class CarlCoaxSwerveDecodeImplementation {
     MotorsCarlCoaxSwervePractice motors = new MotorsCarlCoaxSwervePractice ();
     CarlOdometryExampleImplementation odo = new CarlOdometryExampleImplementation();
+    CarlCoaxSwerveWheelHeading wheelheading = new CarlCoaxSwerveWheelHeading();
 
     //Use the odometry class to get the actual fieldX, fieldY, and Yaw variables.
     double fieldX; //would be equal to the odo field x, and so on for the other variables
@@ -73,6 +76,9 @@ public class CarlCoaxSwerveDecodeImplementation {
         //Change Acceleration scales the change from inches (or whatever field units) to a unitless number for motor power.
         changeX = (seekFieldX - fieldX)/changeXYAcceleration;
         changeY = (seekFieldY - fieldY)/changeXYAcceleration;
+
+        //Tracks current wheel heading
+        heading = wheelheading.getOverallWheelHeading();
 
         //Implements heading seeking
         changeHeading = (seekHeading - heading) * headingAcceleration;
