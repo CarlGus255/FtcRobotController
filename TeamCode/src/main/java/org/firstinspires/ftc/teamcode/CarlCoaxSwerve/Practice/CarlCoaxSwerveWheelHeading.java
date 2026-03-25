@@ -1,39 +1,54 @@
 package org.firstinspires.ftc.teamcode.CarlCoaxSwerve.Practice;
 
+import com.qualcomm.robotcore.hardware.HardwareMap;
+
 import org.firstinspires.ftc.teamcode.CarlCoaxSwerve.MotorsCarlCoaxSwervePractice;
 
 public class CarlCoaxSwerveWheelHeading {
-    MotorsCarlCoaxSwervePractice motors = new MotorsCarlCoaxSwervePractice();
+    MotorsCarlCoaxSwervePractice motors;
+
+    public CarlCoaxSwerveWheelHeading(MotorsCarlCoaxSwervePractice motors) {
+        this.motors = motors;
+    }
     double wheelHeadingRight;
     double wheelHeadingLeft;
-    double leftWheelWrapInc;
-    double rightWheelWrapInc;
+    int leftWheelWrapInc;
+    int rightWheelWrapInc;
     final double wrapAngle = 270;
     double lastLeftWheelHeading;
     double lastRightWheelHeading;
     final double potToDegrees = wrapAngle/3.13;
     double heading;
-
-
-
+    double rawLeft;
+    double lastRawLeft;
+    double deltaLeft;
+    double rawRight;
+    double lastRawRight;
+    double deltaRight;
     public double getLeftWheelHeading () {
-        wheelHeadingLeft = (motors.getLeftPot() * potToDegrees) + (leftWheelWrapInc * wrapAngle);
-        if (wheelHeadingLeft - lastLeftWheelHeading < -(wrapAngle/2)) {
-            leftWheelWrapInc --;
-        } else if (wheelHeadingLeft - lastLeftWheelHeading > (wrapAngle/2)) {
-            leftWheelWrapInc ++;
+        rawLeft = motors.getLeftPot();
+        deltaLeft = rawLeft - lastRawLeft;
+        if (deltaLeft > wrapAngle/2) {
+            leftWheelWrapInc--;
+        } else if (deltaLeft < -wrapAngle/2) {
+            leftWheelWrapInc++;
         }
-        lastLeftWheelHeading = wheelHeadingLeft;
+        wheelHeadingLeft = (rawLeft + (leftWheelWrapInc * wrapAngle));
+        lastRawLeft = rawLeft;
+        
         return  wheelHeadingLeft;
     }
     public double getRightWheelHeading () {
-        wheelHeadingRight = (motors.getRightPot() * potToDegrees) + (rightWheelWrapInc * wrapAngle);
-        if (wheelHeadingRight - lastRightWheelHeading < -(wrapAngle/2)) {
-            rightWheelWrapInc --;
-        } else if (wheelHeadingRight - lastRightWheelHeading > (wrapAngle/2)) {
-            rightWheelWrapInc ++;
+        rawRight = motors.getRightPot();
+        deltaRight = rawRight - lastRawRight;
+        if (deltaRight > wrapAngle/2) {
+            rightWheelWrapInc--;
+        } else if (deltaRight < -wrapAngle/2) {
+            rightWheelWrapInc++;
         }
-        lastRightWheelHeading = wheelHeadingRight;
+        wheelHeadingRight = rawRight + (rightWheelWrapInc * wrapAngle);
+        lastRawRight = rawRight;
+
         return  wheelHeadingRight;
     }
 

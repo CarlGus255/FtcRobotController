@@ -3,13 +3,17 @@ package org.firstinspires.ftc.teamcode.CarlCoaxSwerve;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
+import org.firstinspires.ftc.teamcode.CarlCoaxSwerve.Practice.CarlCoaxSwerveWheelHeading;
+
 @TeleOp
 public class CarlTeleOpClass extends OpMode {
+    CarlCoaxSwerveDecodeImplementation swerveImp;
+    CarlOdometryExampleImplementation odo;
+    WebCamCarlCoaxSwerve cam;
+    MotorsCarlCoaxSwervePractice motors;
+    CarlCoaxSwerveWheelHeading wheelHeading;
+    PIDTuning PID;
 
-    CarlCoaxSwerveDecodeImplementation swerveImp = new CarlCoaxSwerveDecodeImplementation();
-    CarlOdometryExampleImplementation odo = new CarlOdometryExampleImplementation();
-    WebCamCarlCoaxSwerve cam = new WebCamCarlCoaxSwerve();
-    MotorsCarlCoaxSwervePractice motors = new MotorsCarlCoaxSwervePractice();
 
     //Velocity values for teleop implementation
     double xVelocity;
@@ -22,13 +26,24 @@ public class CarlTeleOpClass extends OpMode {
     boolean last2y = false;
 
     public void init() {
-        //Initialize the camera, odometry, and mechanisms
+
+        cam = new WebCamCarlCoaxSwerve();
         cam.init(hardwareMap);
-        motors.init(hardwareMap);
+
+        odo = new CarlOdometryExampleImplementation(cam);
         odo.init(hardwareMap);
 
+        motors = new MotorsCarlCoaxSwervePractice();
+        motors.init(hardwareMap);
+
+        wheelHeading = new CarlCoaxSwerveWheelHeading(motors);
+        PID = new PIDTuning(wheelHeading);
+
+        swerveImp = new CarlCoaxSwerveDecodeImplementation(odo, motors, wheelHeading, PID);
         //Set field centric using camera to read the april tag on the red bin
         odo.resetFieldWebcamRedBin();
+
+
     }
 
     public void loop () {
@@ -36,6 +51,11 @@ public class CarlTeleOpClass extends OpMode {
         xVelocity = -gamepad1.left_stick_y;
         yVelocity = gamepad1.left_stick_x;
         yawVelocity = -gamepad1.right_stick_y;
+
+        //test wheel heading
+        telemetry.addData("Wheel Heading is:", wheelHeading.getOverallWheelHeading());
+        telemetry.addData("Left Wheel Heading is:", wheelHeading.getLeftWheelHeading());
+        telemetry.addData("Right Wheel Heading is:", wheelHeading.getRightWheelHeading());
 
         //If we want to seek to a field position, this will override driver control until finished looping when driver presses y
         //Begins seek sequence
@@ -67,5 +87,15 @@ public class CarlTeleOpClass extends OpMode {
             telemetry.addData("Field is:", "Reset!");
         }
         last2y = gamepad2.y;
+
+        telemetry.addData("X Velocity is:", xVelocity);
+        telemetry.addData("Y Velocity is:", yVelocity);
+        telemetry.addData("Yaw Velocity is:", yawVelocity);
+
+        telemetry.addData("Left Wheel Translation is:", swerveImp.translationLeft);
+        telemetry.addData("Right Wheel Translation is:", swerveImp.translationRight);
+
+        telemetry.addData("Change Direction is:", swerveImp.changeDirection);
+
     }
 }

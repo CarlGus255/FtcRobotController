@@ -3,9 +3,23 @@ package org.firstinspires.ftc.teamcode.CarlCoaxSwerve;
 import org.firstinspires.ftc.teamcode.CarlCoaxSwerve.Practice.CarlCoaxSwerveWheelHeading;
 
 public class CarlCoaxSwerveDecodeImplementation {
-    MotorsCarlCoaxSwervePractice motors = new MotorsCarlCoaxSwervePractice ();
-    CarlOdometryExampleImplementation odo = new CarlOdometryExampleImplementation();
-    CarlCoaxSwerveWheelHeading wheelheading = new CarlCoaxSwerveWheelHeading();
+
+    private MotorsCarlCoaxSwervePractice motors;
+    private CarlCoaxSwerveWheelHeading wheelHeading;
+    private CarlOdometryExampleImplementation odo;
+    private PIDTuning PID;
+
+    public CarlCoaxSwerveDecodeImplementation(
+            CarlOdometryExampleImplementation odo,
+            MotorsCarlCoaxSwervePractice motors,
+            CarlCoaxSwerveWheelHeading wheelHeading,
+            PIDTuning PID
+    ) {
+        this.odo = odo;
+        this.motors = motors;
+        this.wheelHeading = wheelHeading;
+        this.PID = PID;
+    }
 
     //Use the odometry class to get the actual fieldX, fieldY, and Yaw variables.
     double fieldX; //would be equal to the odo field x, and so on for the other variables
@@ -13,10 +27,14 @@ public class CarlCoaxSwerveDecodeImplementation {
     double fieldYaw;
 
     //Heading tracking
-    double headingAcceleration = 1;
-    double heading; //Track current heading - see CoaxSwerveFieldCentric for pot useage. In degrees
-    double seekHeading; //Use to set heading, in degrees
-    double changeHeading; //To implement heading changes
+    double headingAcceleration = -0.1;
+    double headingLeft; //Track current heading - see CoaxSwerveFieldCentric for pot useage. In degrees
+    double seekHeadingLeft; //Use to set heading, in degrees
+    double changeHeadingLeft; //To implement heading changes
+    double headingRight;
+    double seekHeadingRight;
+    double changeHeadingRight;
+
     double lastChangeHeading; // For deadband
     double fieldChangeHeading; //Transforms from robot centric to field centric heading before implementation
 
@@ -47,12 +65,12 @@ public class CarlCoaxSwerveDecodeImplementation {
 
     double yIncrease = 0;
     double seekFieldY;
-    double yVelAcceleration; //Tune to achieve X scaling
+    double yVelAcceleration; //Tune to achieve Y scaling
 
 
     double yawIncrease = 0;
     double seekFieldYaw;
-    double yawVelAcceleration; //Tune to achieve X scaling
+    double yawVelAcceleration; //Tune to achieve Yaw scaling
 
     double xPos1 = 0;
     double yPos1 = 0;
@@ -78,10 +96,12 @@ public class CarlCoaxSwerveDecodeImplementation {
         changeY = (seekFieldY - fieldY)/changeXYAcceleration;
 
         //Tracks current wheel heading
-        heading = wheelheading.getOverallWheelHeading();
+        headingLeft = wheelHeading.getLeftWheelHeading();
+        headingRight = wheelHeading.getRightWheelHeading();
 
         //Implements heading seeking
-        changeHeading = (seekHeading - heading) * headingAcceleration;
+        changeHeadingLeft = (seekHeadingLeft - headingLeft) * headingAcceleration;
+        changeHeadingRight = (seekHeadingRight - headingRight) * headingAcceleration;
 
         //Yaw Acceleratoin is the proportional acceleration value, and determines how much it tries to change the yaw
         //Translation Offset is the variable that will be used to implement a difference in translation to each motor, inducing the yaw change
@@ -103,23 +123,19 @@ public class CarlCoaxSwerveDecodeImplementation {
         translationRight = changeMagnitude - changeYaw;
 
         //Implement the heading change using seek heading to seek the directional input
-        seekHeading = changeDirection;
-
+        seekHeadingLeft = 0;
+        seekHeadingRight = 0;
+        /*
         //Deadband - this might need to be reworked a little bit for this particular application. Makes it so the servos don't snap to 0.
-        if (changeMagnitude < 0.1) {
+        if (changeMagnitude > 0.1) {
             lastChangeHeading = changeHeading;
         }
 
+         */
+
         //Implements field centric wheel heading
-        fieldChangeHeading = lastChangeHeading + fieldYaw;
 
         //Optimization - overrotation detection. If it's trying to rotate more than 180 degrees, it rotates in the opposite direction instead.
-        while (fieldChangeHeading > 180) {
-            fieldChangeHeading -= 360;
-        }
-        while (fieldChangeHeading < -180) {
-            fieldChangeHeading += 360;
-        }
 
         //Optimization - wheel polarity flipping. Combines overrotation with flipping the direction of wheel spin. I don't prefer, but we can see. It doesn't work for differential swerve very wheel because of chopiness due to fast wheel rotation capabilities, but with the slower wheel rotation with coaxial it's probably better
 
@@ -128,11 +144,19 @@ public class CarlCoaxSwerveDecodeImplementation {
         Wheel polarity code
 
          */
+
+
+
+        changeDirection = 45;
         motors.runLeftMotor(translationLeft);
         motors.runRightMotor(translationRight);
-        motors.runLeftServo(fieldChangeHeading);
-        motors.runRightServo(fieldChangeHeading);
+        motors.runLeftServo(changeHeadingLeft/4);
+        motors.runRightServo(changeHeadingRight/4);
+        //motors.runLeftServo(PID.getLeftServoPower(changeDirection));
+        //motors.runRightServo(PID.getRightServoPower(changeDirection));
     }
+
+
 
     /*
     Converting velocity to position for OpMode implementation. It tracks the last position, and depending on the VelAcceleration, it

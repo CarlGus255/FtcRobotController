@@ -9,12 +9,12 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
 public class CarlOdometryExampleImplementation {
 
-    double fieldX;
-    double fieldY;
-    double fieldYaw;
-    double robotX;
-    double robotY;
-    double robotYaw;
+    double fieldX = 0;
+    double fieldY = 0;
+    double fieldYaw = 0;
+    double robotX = 0;
+    double robotY = 0;
+    double robotYaw = 0;
     double aprilX = 141.33;
     double aprilY = 148.19;
     double aprilYaw = -45.0;
@@ -23,10 +23,14 @@ public class CarlOdometryExampleImplementation {
     double resetXValue = 0;
     double resetYValue = 0;
     double resetYawValue = 0;
-
+    WebCamCarlCoaxSwerve webcam;
+    double lastRobotX = 0;
+    double lastRobotY = 0;
+    double lastRobotYaw = 0;
     GoBildaPinpointDriver ppo;
-    WebCamCarlCoaxSwerve webcam = new WebCamCarlCoaxSwerve();
-    CarlCoaxSwerveDecodeImplementation swerve = new CarlCoaxSwerveDecodeImplementation();
+    public CarlOdometryExampleImplementation(WebCamCarlCoaxSwerve webcam) {
+        this.webcam = webcam;
+    }
 
     public void init (HardwareMap hwMap) {
         ppo = hwMap.get(GoBildaPinpointDriver.class, "odo");
@@ -42,44 +46,92 @@ public class CarlOdometryExampleImplementation {
         ppo.resetPosAndIMU();
     }
     public void resetFieldWebcamRedBin () {
-        // Centered with the origin at the middle of the field. Values are approximate based on CAD of the field.
-        fieldX = aprilX - webcam.getAprilDistance(20)*Math.sin(webcam.getAprilBearing(20)); // 141.33 should be X distance from the middle of the field to the april tag in cm, same goes with the Y
-        fieldY = aprilY - webcam.getAprilDistance(20)*Math.cos(webcam.getAprilBearing(20));
-        fieldYaw = webcam.getAprilBearing(20) + aprilYaw; // makes it so zero is straight ahead, and I believe it should increase clockwise
+        webcam.update();
+        Double dist = webcam.getAprilDistance(24);
+        Double bearing = webcam.getAprilBearing(24);
 
+        if (dist != null && bearing != null) {
+            double bearingRad = Math.toRadians(bearing);
 
-        resetXValue = updateRobotX();
-        resetYValue = updateRobotY();
-        resetYawValue = updateRobotYaw();
+            fieldX = aprilX - dist * Math.sin(bearingRad);
+            fieldY = aprilY - dist * Math.cos(bearingRad);
+            fieldYaw = bearing + aprilYaw;
+
+            resetXValue = updateRobotX();
+            resetYValue = updateRobotY();
+            resetYawValue = updateRobotYaw();
+
+        }
     }
 
     public double updateRobotX () {
+        ppo.update();
         robotX = ppo.getPosX(DistanceUnit.CM) - resetXValue;
         return robotX;
     }
     public double updateRobotY () {
+        ppo.update();
         robotY = ppo.getPosY(DistanceUnit.CM) - resetYValue;
         return robotY;
     }
 
     public double updateRobotYaw () {
+        ppo.update();
         robotYaw = ppo.getHeading(AngleUnit.DEGREES) - resetYawValue;
         return robotYaw;
     }
 
     public double getFieldX () {
-        fieldX = fieldX + updateRobotX();
+        double currentX = updateRobotX();
+        double deltaX = currentX - lastRobotX;
+
+        fieldX += deltaX;
+
+        lastRobotX = currentX;
         return fieldX;
     }
 
     public double getFieldY () {
-        fieldY = fieldY + updateRobotY();
+        double currentY = updateRobotY();
+        double deltaY = currentY - lastRobotY;
+
+        fieldY += deltaY;
+
+        lastRobotY = currentY;
         return fieldY;
     }
-
     public double getFieldYaw () {
-        fieldYaw = fieldYaw + updateRobotYaw();
+        double currentYaw = updateRobotYaw();
+        double deltaYaw = currentYaw - lastRobotYaw;
+
+        fieldYaw += deltaYaw;
+
+        lastRobotYaw = currentYaw;
         return fieldYaw;
+    }
+    public double getShootingDistance () {
+        double aprilPosX;
+        double aprilPosY;
+        double aprilDistance;
+
+        aprilPosX = fieldX - aprilX;
+        aprilPosY = fieldY - aprilY;
+
+        aprilDistance = Math.hypot(aprilPosX, aprilPosY);
+        return aprilDistance;
+    }
+
+    public double getShootingX () {
+        double aprilPosX;
+
+        aprilPosX = fieldX - aprilX;
+        return aprilPosX;
+    }
+    public double getShootingY () {
+        double aprilPosY;
+
+        aprilPosY = fieldY - aprilY;
+        return aprilPosY;
     }
 
 

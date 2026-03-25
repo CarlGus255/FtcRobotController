@@ -65,15 +65,18 @@ public class CarlCoaxSwerveFieldCentric extends OpMode {
     @Override
     public void init() {
         motors.init(hardwareMap);
-        april.init(hardwareMap, telemetry);
+        april.init(hardwareMap);
     }
 
     @Override
     public void loop() {
+        /*
         april.update();
 
         AprilTagDetection id20 = april.getTagBySpecificId(20);
         april.displayDetectionTelemetry(id20);
+
+         */
         /*
         turns left joystick into vector input. This is the direction value. It is normalized so straight up on the gamepad is 0
         degrees, then increases going counter-clockwise up to 360.

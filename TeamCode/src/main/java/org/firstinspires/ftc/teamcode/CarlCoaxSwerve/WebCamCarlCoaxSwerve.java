@@ -59,6 +59,7 @@ public class WebCamCarlCoaxSwerve {
             visionPortal.close();
         }
     }
+
     public void displayDetectionTelemetry (AprilTagDetection detectedId) {
         if (detectedId == null) {
             return;
@@ -72,6 +73,8 @@ public class WebCamCarlCoaxSwerve {
             telemetry.addLine(String.format("\n==== (ID %d) Unknown", detectedId.id));
             telemetry.addLine(String.format("Center %6.0f %6.0f   (pixels)", detectedId.center.x, detectedId.center.y));
         }
+
+
         // end for() loop
     }
     public Double getAprilDistance(int id) {
