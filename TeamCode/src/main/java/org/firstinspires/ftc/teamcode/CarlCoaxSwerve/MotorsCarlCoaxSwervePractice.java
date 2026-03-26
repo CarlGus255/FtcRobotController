@@ -98,8 +98,8 @@ public class MotorsCarlCoaxSwervePractice {
         return RightPot.getVoltage()*(270/3.13);
     }
 
-    public double getFlyVel () {
-        return flyWheel.getVelocity();
+    public double getFlyLinVel () {
+        return (flyWheel.getVelocity()/28) * 104 * 3.14;
     }
 
 

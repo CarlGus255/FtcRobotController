@@ -9,12 +9,12 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
 public class CarlOdometryExampleImplementation {
 
-    double fieldX = 0;
-    double fieldY = 0;
-    double fieldYaw = 0;
-    double robotX = 0;
-    double robotY = 0;
-    double robotYaw = 0;
+    double fieldX;
+    double fieldY;
+    double fieldYaw;
+    double robotX;
+    double robotY;
+    double robotYaw;
     double aprilX = 141.33;
     double aprilY = 148.19;
     double aprilYaw = -45.0;
@@ -57,56 +57,55 @@ public class CarlOdometryExampleImplementation {
             fieldY = aprilY - dist * Math.cos(bearingRad);
             fieldYaw = bearing + aprilYaw;
 
-            resetXValue = updateRobotX();
-            resetYValue = updateRobotY();
-            resetYawValue = updateRobotYaw();
+            resetXValue = robotX;
+            resetYValue = robotY;
+            resetYawValue = robotYaw;
 
         }
     }
 
-    public double updateRobotX () {
+    public void update() {
+        // Update odometry ONCE
         ppo.update();
+
+        // Get current robot pose
         robotX = ppo.getPosX(DistanceUnit.CM) - resetXValue;
-        return robotX;
-    }
-    public double updateRobotY () {
-        ppo.update();
         robotY = ppo.getPosY(DistanceUnit.CM) - resetYValue;
-        return robotY;
-    }
-
-    public double updateRobotYaw () {
-        ppo.update();
         robotYaw = ppo.getHeading(AngleUnit.DEGREES) - resetYawValue;
-        return robotYaw;
+
+        // Compute deltas
+        double dx = robotX - lastRobotX;
+        double dy = robotY - lastRobotY;
+
+        // Convert heading to radians
+        double headingRad = Math.toRadians(robotYaw);
+
+        // Rotate robot-relative movement into field frame
+        double fieldDeltaX = dx * Math.cos(headingRad) - dy * Math.sin(headingRad);
+        double fieldDeltaY = dx * Math.sin(headingRad) + dy * Math.cos(headingRad);
+
+        // Accumulate into field position
+        fieldX += fieldDeltaX;
+        fieldY += fieldDeltaY;
+        fieldYaw = robotYaw;
+
+        // Store last values for next loop
+        lastRobotX = robotX;
+        lastRobotY = robotY;
+        lastRobotYaw = robotYaw;
     }
 
-    public double getFieldX () {
-        double currentX = updateRobotX();
-        double deltaX = currentX - lastRobotX;
-
-        fieldX += deltaX;
-
-        lastRobotX = currentX;
+    public double getFieldX () {;
+        update();
         return fieldX;
     }
 
     public double getFieldY () {
-        double currentY = updateRobotY();
-        double deltaY = currentY - lastRobotY;
-
-        fieldY += deltaY;
-
-        lastRobotY = currentY;
+        update();
         return fieldY;
     }
     public double getFieldYaw () {
-        double currentYaw = updateRobotYaw();
-        double deltaYaw = currentYaw - lastRobotYaw;
-
-        fieldYaw += deltaYaw;
-
-        lastRobotYaw = currentYaw;
+        update();
         return fieldYaw;
     }
     public double getShootingDistance () {

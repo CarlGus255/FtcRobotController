@@ -3,6 +3,8 @@ package org.firstinspires.ftc.teamcode.CarlCoaxSwerve;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.teamcode.CarlCoaxSwerve.Practice.CarlCoaxSwerveWheelHeading;
 @TeleOp
 public class PracticeOdoImpOpMode extends OpMode {
@@ -49,9 +51,10 @@ public class PracticeOdoImpOpMode extends OpMode {
             }
             last2y = gamepad2.y;
 
-            telemetry.addData("Raw Odo X", odo.updateRobotX());
-            telemetry.addData("Raw Odo Y", odo.updateRobotY());
-            telemetry.addData("Raw Odo Yaw", odo.updateRobotYaw());
+            telemetry.addData("Raw Odo X", odo.ppo.getPosX(DistanceUnit.CM));
+            telemetry.addData("Raw Odo Y", odo.ppo.getPosY(DistanceUnit.CM));
+            telemetry.addData("Raw Odo Yaw", odo.ppo.getHeading(AngleUnit.DEGREES));
+
 
             telemetry.addData("Bearing is:", cam.getAprilBearing(24));
             telemetry.addData("Distance is:", cam.getAprilDistance(24));

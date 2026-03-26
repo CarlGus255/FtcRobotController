@@ -80,7 +80,7 @@ public class WebCamCarlCoaxSwerve {
     public Double getAprilDistance(int id) {
         AprilTagDetection tag = getTagBySpecificId(id);
         if (tag == null) return null;
-        return tag.ftcPose.z;
+        return tag.ftcPose.range;
     }
 
     public Double getAprilBearing (int id) {

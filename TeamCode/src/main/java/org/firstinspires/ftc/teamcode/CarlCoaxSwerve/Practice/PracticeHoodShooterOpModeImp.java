@@ -43,6 +43,6 @@ public class PracticeHoodShooterOpModeImp extends OpMode {
         telemetry.addData("Angle Error Is:", hood.getAngleError());
 
         //Set hood power using PID. Input values are the distance from april tag in X and Y, as well as flywheel velocity
-        hood.setHoodAngle(hood.getLaunchAngle(odo.getShootingX(), odo.getShootingY(), motors.getFlyVel()));
+        hood.setHoodAngle(hood.getLaunchAngle((odo.getShootingDistance()*10), (46*25.4), motors.getFlyLinVel()));
     }
 }
