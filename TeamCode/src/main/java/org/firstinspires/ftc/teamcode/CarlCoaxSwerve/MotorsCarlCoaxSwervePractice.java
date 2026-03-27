@@ -8,6 +8,7 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DigitalChannel;
 import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
@@ -32,6 +33,8 @@ public class MotorsCarlCoaxSwervePractice {
     private CRServo HoodServo;
     private DigitalChannel TouchSensor;
     private DcMotorEx flyWheel;
+    private DcMotorEx intakeMotor;
+    private Servo gate;
 
 
 
@@ -60,8 +63,18 @@ public class MotorsCarlCoaxSwervePractice {
         flyWheel = hwMap.get(DcMotorEx.class, "flyWheel");
         flyWheel.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         flyWheel.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
+        intakeMotor = hwMap.get(DcMotorEx.class, "IntakeMotor");
+
+        gate = hwMap.get(Servo.class, "gate");
     }
 
+    public void setIntakePower (double power) {
+        intakeMotor.setPower(power);
+    }
+    public void setGate (double pos) {
+        gate.setPosition(pos);
+    }
     public void runLeftServo (double power) {
         LeftServo.setPower(power);
     }
@@ -100,6 +113,15 @@ public class MotorsCarlCoaxSwervePractice {
 
     public double getFlyLinVel () {
         return (flyWheel.getVelocity()/28) * 104 * 3.14;
+    }
+    public double getFlyVel () {
+        return  (flyWheel.getVelocity()/(28*60)); //RPM
+    }
+    public void setFlyWheelPower (double power) {
+        flyWheel.setPower(power);
+    }
+    public void setFlyWheelVelocity (double Velocity) {
+        flyWheel.setVelocity(Velocity*28/60); //RPM
     }
 
 

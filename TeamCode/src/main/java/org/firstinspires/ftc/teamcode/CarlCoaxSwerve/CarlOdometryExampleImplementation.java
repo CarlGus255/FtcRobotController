@@ -109,6 +109,7 @@ public class CarlOdometryExampleImplementation {
         return fieldYaw;
     }
     public double getShootingDistance () {
+        update();
         double aprilPosX;
         double aprilPosY;
         double aprilDistance;

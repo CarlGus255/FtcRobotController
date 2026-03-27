@@ -82,4 +82,11 @@ public class CarlHoodShoot {
         //Returns smallest angle
         return Math.min(theta1, theta2);
     }
+    public void varyFlywheel () {
+        if (odo.getShootingDistance() < 254) {
+            motors.setFlyWheelVelocity(1200);
+        } else {
+            motors.setFlyWheelVelocity(1500);
+        }
+    }
 }
