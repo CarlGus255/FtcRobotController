@@ -20,6 +20,9 @@ public class PracticeHoodShooterOpModeImp extends OpMode {
     double flyWheelPower;
     double setVel;
     boolean isShooting = false;
+    boolean autoSeekHood = false;
+    boolean isTheta1 = true;
+
 
     @Override
     public void init() {
@@ -37,10 +40,40 @@ public class PracticeHoodShooterOpModeImp extends OpMode {
 
     @Override
     public void loop() {
-        /*
-        seekHoodAngle = gamepad1.left_stick_x * 45;
-        hood.setHoodAngle(seekHoodAngle);
-         */
+        if (gamepad1.dpad_right) {
+            autoSeekHood = true;
+        }
+        if (gamepad1.dpad_left) {
+            autoSeekHood = false;
+        }
+
+        if (gamepad1.dpad_up) {
+            seekHoodAngle = seekHoodAngle + 0.5;
+        }
+        if (gamepad1.dpad_down) {
+            seekHoodAngle = seekHoodAngle - 0.5;
+        }
+        if (gamepad1.a) {
+            seekHoodAngle = 20;
+        }
+        if (gamepad1.x) {
+            seekHoodAngle = 0;
+        }
+        if (gamepad2.left_bumper) {
+            isTheta1 = false;
+        } else if (gamepad2.right_bumper) {
+            isTheta1 = true;
+        }
+        if (autoSeekHood) {
+            double checkHoodAngle = hood.getLaunchAngle(1.5, 1.15, hood.getBallVelFromFly(motors.getFlyVel())/100, isTheta1);
+            if (checkHoodAngle > 0 && checkHoodAngle < 90) {
+                seekHoodAngle = checkHoodAngle;
+            }
+        }
+
+        motors.setHoodServoPower(hood.getHoodServoPowerPID(seekHoodAngle, getRuntime()));
+
+        motors.setIntakePower(-gamepad1.left_stick_y);
 
         if (gamepad2.y) {
             isShooting = true;
@@ -49,27 +82,23 @@ public class PracticeHoodShooterOpModeImp extends OpMode {
             isShooting = false;
         }
         if (isShooting) {
-            motors.setGate(1);
+            motors.setGate(0.75);
             motors.setIntakePower(1);
         } else if (!isShooting) {
             motors.setGate(0.5);
         }
-        motors.setIntakePower(-gamepad1.left_stick_y);
+
 
 
         if (gamepad2.left_stick_y != 0) {
             flyWheelPower = Math.abs(gamepad2.left_stick_y);
         } else if (gamepad2.dpad_up) {
-            setVel = 1500;
+            setVel = 3500;
         }  else if (gamepad2.dpad_down) {
             setVel = 0;
         }
         if (gamepad2.left_stick_y == 0) {
             motors.setFlyWheelVelocity(setVel);
-        }
-
-        if (gamepad2.dpad_right) {
-            hood.varyFlywheel();
         }
 
         motors.setFlyWheelPower(flyWheelPower);
@@ -79,6 +108,22 @@ public class PracticeHoodShooterOpModeImp extends OpMode {
 
         telemetry.addData("Flywheel Velocity is:", motors.getFlyVel());
         telemetry.addData("Flywheel Linear Velocity (mm) is:", motors.getFlyLinVel());
+        //telemetry.addData("Touch sensor isn't pressed", motors.getTouchSensor());
+
+        //telemetry.addData("Color sensor sees purple:", motors.isColorSensorPurple());
+        //telemetry.addData("Color sensor sees green:", motors.isColorSensorGreen());
+
+        telemetry.addData("Rev Encoder Position Is:", motors.getRevEncoderPos());
+        telemetry.addData("Change time is:", hood.getChangeTime());
+
+        telemetry.addData("Chosen hood angle is:", hood.getLaunchAngle(1.5, 1.15, motors.getFlyLinVel(), isTheta1)); //lin vel in M/s, x and y in M
+        telemetry.addData("Chosen hood angle from ball speed is:", hood.getBallVelFromFly(motors.getFlyVel())/100);
+        telemetry.addData("Chosen hood angle from ball speed 2 is:", hood.getBallVelFromFly(motors.getFlyVel()/100));
+        telemetry.addData("Theta 1 is:", hood.getTheta1());
+        telemetry.addData("Theta 2 is:", hood.getTheta2());
+
+        telemetry.addData("Speed of ball is:", hood.getBallVelFromFly(motors.getFlyVel()));
+        telemetry.addData("Final speed of ball is:", hood.getBallVelFromFinalFly(motors.getFlyVel()));
 
         //Set hood power using PID. Input values are the distance from april tag in X and Y, as well as flywheel velocity
         //hood.setHoodAngle(hood.getLaunchAngle((odo.getShootingDistance()*10), (46*25.4), motors.getFlyLinVel()));

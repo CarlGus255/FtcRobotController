@@ -2,12 +2,15 @@ package org.firstinspires.ftc.teamcode.CarlCoaxSwerve;
 
 import android.util.Size;
 
+import com.qualcomm.hardware.rev.RevColorSensorV3;
 import com.qualcomm.robotcore.hardware.AnalogInput;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DigitalChannel;
 import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.robotcore.hardware.NormalizedColorSensor;
+import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
@@ -21,6 +24,8 @@ import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
 import java.util.ArrayList;
 import java.util.List;
 
+import android.graphics.Color;
+
 public class MotorsCarlCoaxSwervePractice {
     private CRServo LeftServo;
     private DcMotorEx revEncoder1;
@@ -31,10 +36,21 @@ public class MotorsCarlCoaxSwervePractice {
     private AnalogInput LeftPot;
     double ticksPerRev = 8192;
     private CRServo HoodServo;
-    private DigitalChannel TouchSensor;
+    //private DigitalChannel TouchSensor;
     private DcMotorEx flyWheel;
     private DcMotorEx intakeMotor;
     private Servo gate;
+    private RevColorSensorV3 colorSensor;
+    float hue;
+    float[] hsv = new float[3];
+    boolean isPurple;
+    boolean isGreen;
+
+    //Flywheel PIDF values
+    double kP = 12;
+    double kI = 0;
+    double kD = 5;
+    double kF = 14; //11.7 I think is technically ideal system, but with friction and such more is needed
 
 
 
@@ -55,19 +71,45 @@ public class MotorsCarlCoaxSwervePractice {
 
         revEncoder1 = hwMap.get(DcMotorEx.class, "revEncoder1");
         HoodServo = hwMap.get(CRServo.class, "HoodServo");
-        TouchSensor = hwMap.get(DigitalChannel.class, "TouchSensor");
+        //TouchSensor = hwMap.get(DigitalChannel.class, "TouchSensor");
 
         revEncoder1.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
         revEncoder1.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
 
         flyWheel = hwMap.get(DcMotorEx.class, "flyWheel");
-        flyWheel.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         flyWheel.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        PIDFCoefficients pidf = new PIDFCoefficients(kP, kI, kD, kF);
+        flyWheel.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, pidf);
 
         intakeMotor = hwMap.get(DcMotorEx.class, "IntakeMotor");
 
         gate = hwMap.get(Servo.class, "gate");
+
+        colorSensor = hwMap.get(RevColorSensorV3.class, "ColorSensor");
     }
+    public void updateColorSensor () {
+        Color.RGBToHSV(colorSensor.red(), colorSensor.green(), colorSensor.blue(), hsv);
+        hue = hsv[0];
+    }
+    public boolean isColorSensorPurple () {
+        updateColorSensor();
+        if (hue > 100 && hue < 140 ) {
+            isPurple = true;
+        } else {
+            isPurple = false;
+        }
+        return isPurple;
+    }
+    public boolean isColorSensorGreen () {
+        updateColorSensor();
+        if (hue > 250 && hue < 280 ) {
+            isGreen = true;
+        } else {
+            isGreen = false;
+        }
+        return isGreen;
+    }
+
 
     public void setIntakePower (double power) {
         intakeMotor.setPower(power);
@@ -83,7 +125,7 @@ public class MotorsCarlCoaxSwervePractice {
     }
 
     public double getRevEncoderPos () {
-        return revEncoder1.getCurrentPosition()/ticksPerRev;
+        return (revEncoder1.getCurrentPosition()/ticksPerRev)*360; //Returns the rotation of the hood servo in degrees
     }
     public void resetRevEncoderPos () {
         revEncoder1.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
@@ -93,9 +135,11 @@ public class MotorsCarlCoaxSwervePractice {
     public void setHoodServoPower (double power) {
         HoodServo.setPower(power);
     }
-    public boolean getTouchSensor () {
+
+    /*public boolean getTouchSensor () {
         return TouchSensor.getState();
     }
+     */
 
     public void runLeftMotor (double power) {
         LeftMotor.setPower(power);
@@ -112,10 +156,10 @@ public class MotorsCarlCoaxSwervePractice {
     }
 
     public double getFlyLinVel () {
-        return (flyWheel.getVelocity()/28) * 104 * 3.14;
+        return (flyWheel.getVelocity()/28) * 104 * 3.14/1000;
     }
     public double getFlyVel () {
-        return  (flyWheel.getVelocity()/(28*60)); //RPM
+        return  (flyWheel.getVelocity()*60/28); //RPM
     }
     public void setFlyWheelPower (double power) {
         flyWheel.setPower(power);
