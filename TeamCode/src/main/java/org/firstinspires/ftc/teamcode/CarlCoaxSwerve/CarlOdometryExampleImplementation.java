@@ -65,10 +65,10 @@ public class CarlOdometryExampleImplementation {
     }
 
     public void update() {
-        // Update odometry ONCE
+        // Update odometry
         ppo.update();
 
-        // Get current robot pose
+        // Get current robot position
         robotX = ppo.getPosX(DistanceUnit.CM) - resetXValue;
         robotY = ppo.getPosY(DistanceUnit.CM) - resetYValue;
         robotYaw = ppo.getHeading(AngleUnit.DEGREES) - resetYawValue;
@@ -77,7 +77,7 @@ public class CarlOdometryExampleImplementation {
         double dx = robotX - lastRobotX;
         double dy = robotY - lastRobotY;
 
-        // Convert heading to radians
+        // Convert yaw to radians for heading calculations
         double headingRad = Math.toRadians(robotYaw);
 
         // Rotate robot-relative movement into field frame

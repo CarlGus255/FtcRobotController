@@ -11,11 +11,7 @@ public class CarlHoodShoot {
     }
 
 
-
-
-
-
-    double encCountToLaunchAngle = 35.95/1117.84;
+    double encCountToLaunchAngle = 35.95 / 1117.84;
     double targetHeight = 1200; //Target height for the ball to be at
     double targetDistance;
     double angleError;
@@ -29,17 +25,18 @@ public class CarlHoodShoot {
     double changeTime;
     //Parameters for speed of ball equation
     final double massBall = 75; //in grams
-    final double radiusBallPath =  (104/2)/10; //Radius of the ball during the path of acceleration in the shooter I believe, in Cm
+    final double radiusBallPath = (104 / 2) / 10; //Radius of the ball during the path of acceleration in the shooter I believe, in Cm
     final double flyWheelMOI = 388.8; //Moment of inertia of the flywheel, g * cm^2
     final double flyWheelMass = 600; //Flywheel mass in grams
+    boolean isHoming = false;
 
 
-    public double getHoodServoPowerPID (double seekAngle, double elapsedTime) {
+    public double getHoodServoPowerPID(double seekAngle, double elapsedTime) {
         double derivative;
-        hoodAngle = motors.getRevEncoderPos()* 35.95/1117 * 4 * 90/100;
+        hoodAngle = motors.getRevEncoderPos() * 35.95 / 1117 * 4 * 90 / 100;
         angleError = seekAngle - hoodAngle;
 
-        changeTime = elapsedTime-lastTime;
+        changeTime = elapsedTime - lastTime;
 
         derivative = (angleError - lastAngleError) / changeTime;
 
@@ -53,14 +50,16 @@ public class CarlHoodShoot {
 
         return out;
     }
-    public double getChangeTime () {
+
+    public double getChangeTime() {
         return changeTime;
     }
 
-    public double getHoodAngle () {
+    public double getHoodAngle() {
         return hoodAngle;
     }
-    public double getAngleError () {
+
+    public double getAngleError() {
         return angleError;
     }
 
@@ -77,6 +76,7 @@ public class CarlHoodShoot {
      */
     double theta1;
     double theta2;
+
     public double getLaunchAngle(double x, double y, double velocity, boolean isTheta1) {
         double g = 9.81;
 
@@ -111,30 +111,59 @@ public class CarlHoodShoot {
         //return Math.min(theta1, theta2);
     }
 
-    public double getTheta1 () {
+    public double getTheta1() {
         return theta1;
     }
-    public double getTheta2 () {
+
+    public double getTheta2() {
         return theta2;
     }
-    public void varyFlywheel () {
+
+    public void varyFlywheel() {
         if (odo.getShootingDistance() < 254) {
             motors.setFlyWheelVelocity(1200);
         } else {
             motors.setFlyWheelVelocity(1500);
         }
     }
-    public double getBallVelFromFly (double flyVel) {
-        double flyVelRadiansPerSec = flyVel * 6.28/60;   //Converting from RPM to Rad/s
+
+    public double getBallVelFromFly(double flyVel) {
+        double flyVelRadiansPerSec = flyVel * 6.28 / 60;   //Converting from RPM to Rad/s
         double ballVel;
-        ballVel = (flyWheelMOI*flyVelRadiansPerSec)/(flyWheelMOI+(massBall*radiusBallPath)) * (104/2)/10; //Final clause converts from rad/s to cm/s
+        ballVel = (flyWheelMOI * flyVelRadiansPerSec) / (flyWheelMOI + (massBall * radiusBallPath)) * (104 / 2) / 10; //Final clause converts from rad/s to cm/s
         //Returns in Cm/S
         return ballVel;
     }
-    public double getBallVelFromFinalFly (double flyVel) {
+
+    public double getBallVelFromFinalFly(double flyVel) {
         //(Mass flywheel * flyVel)/(Mass flywheel + 2 mass ball)
-        double finalVel = ((flyWheelMass * (flyVel/60))/(flyWheelMass + (2*massBall)))*(104/2)/1000; //Converts flyVel from Rpm to Rps, then multiplies by radius
+        double finalVel = ((flyWheelMass * (flyVel / 60)) / (flyWheelMass + (2 * massBall))) * (104 / 2) / 1000; //Converts flyVel from Rpm to Rps, then multiplies by radius
         return finalVel;
     }
 
+    public double getAccurateBallVelFromFinalFly(double flyVel) {
+        //(Mass flywheel * flyVel)/(Mass flywheel + 2 mass ball)
+        double finalVel = ((flyWheelMOI * (flyVel / 60)) / (flyWheelMOI + (massBall * 5.2 * 5.2)) * 5.2) / 100; //Converts flyVel from Rpm to Rps, then multiplies by radius
+        return finalVel;
+    }
+
+    public double getFinalFlyVel(double flyVel) {
+        //(Mass flywheel * flyVel)/(Mass flywheel + 2 mass ball)
+        double finalVel = ((flyWheelMass * (flyVel)) / (flyWheelMass + (2 * massBall))); //Converts flyVel to final velocity
+        return finalVel;
+    }
+
+    public void hoodHome() {
+        isHoming = true;
+        if (motors.getTouchSensor() && isHoming) {
+            motors.setHoodServoPower(-0.5);
+        } else if (!motors.getTouchSensor() && isHoming) {
+            motors.setHoodServoPower(0);
+            isHoming = false;
+            motors.resetRevEncoderPos();
+        }
+    }
+    public boolean hasHomed () {
+        return isHoming;
+    }
 }

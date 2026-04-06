@@ -36,7 +36,7 @@ public class MotorsCarlCoaxSwervePractice {
     private AnalogInput LeftPot;
     double ticksPerRev = 8192;
     private CRServo HoodServo;
-    //private DigitalChannel TouchSensor;
+    private DigitalChannel TouchSensor;
     private DcMotorEx flyWheel;
     private DcMotorEx intakeMotor;
     private Servo gate;
@@ -71,7 +71,7 @@ public class MotorsCarlCoaxSwervePractice {
 
         revEncoder1 = hwMap.get(DcMotorEx.class, "revEncoder1");
         HoodServo = hwMap.get(CRServo.class, "HoodServo");
-        //TouchSensor = hwMap.get(DigitalChannel.class, "TouchSensor");
+        TouchSensor = hwMap.get(DigitalChannel.class, "TouchSensor");
 
         revEncoder1.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
         revEncoder1.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
@@ -136,10 +136,10 @@ public class MotorsCarlCoaxSwervePractice {
         HoodServo.setPower(power);
     }
 
-    /*public boolean getTouchSensor () {
+    public boolean getTouchSensor () {
         return TouchSensor.getState();
     }
-     */
+
 
     public void runLeftMotor (double power) {
         LeftMotor.setPower(power);
