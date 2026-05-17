@@ -78,6 +78,11 @@ public class PracticeHoodShooterOpModeImp extends OpMode {
             telemetry.addData("We are looking at:", checkHoodAngle);
         }
 
+
+
+
+        motors.setHoodServoPower(hood.getHoodServoPowerPID(seekHoodAngle, getRuntime()));
+
         //Homing sequence
         if (gamepad1.left_bumper) {
             isHoming = true;
@@ -86,10 +91,6 @@ public class PracticeHoodShooterOpModeImp extends OpMode {
             hood.hoodHome();
             isHoming = hood.hasHomed();
         }
-
-
-        motors.setHoodServoPower(hood.getHoodServoPowerPID(seekHoodAngle, getRuntime()));
-
         motors.setIntakePower(-gamepad1.left_stick_y);
 
         if (gamepad2.y) {

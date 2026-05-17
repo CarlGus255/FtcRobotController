@@ -56,7 +56,7 @@ public class CarlDiffySwervePod extends OpMode {
             rotation = 0.1;
             telemetry.addData("We are:", "Homing!");
         }
-        if (isHoming && !motors.getHomingSwitchState()){
+        if (isHoming && !motors.getHomingSwitchSta te()){
             //stops the homing sequence if we are in homing mode but the switch gets depressed (Now at home)
             //stop rotation
             rotation = 0;

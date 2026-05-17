@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode;
 
 import android.graphics.Color;
 
+import com.qualcomm.hardware.rev.Rev2mDistanceSensor;
 import com.qualcomm.hardware.rev.RevColorSensorV3;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
@@ -11,9 +12,12 @@ import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DigitalChannel;
+import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 import com.qualcomm.robotcore.hardware.Servo;
+
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
 @TeleOp
 public class ColorSensorTest extends OpMode {
@@ -23,7 +27,7 @@ public class ColorSensorTest extends OpMode {
     }
     public boolean isColorSensorPurple () {
         updateColorSensor();
-        if (hue < 170  && hue > 140) {
+        if (hue < 230  && hue > 170) {
             isPurple = true;
         } else {
             isPurple = false;
@@ -32,7 +36,7 @@ public class ColorSensorTest extends OpMode {
     }
     public boolean isColorSensorGreen () {
         updateColorSensor();
-        if (hue > 250 && hue < 280 ) {
+        if (hue > 155 && hue < 170 ) {
             isGreen = true;
         } else {
             isGreen = false;
@@ -45,15 +49,24 @@ public class ColorSensorTest extends OpMode {
     boolean isPurple;
     boolean isGreen;
 
+    private DistanceSensor distanceSensor;
+    double distance;
+
+
+
+
     @Override
     public void init() {
         colorSensor = hardwareMap.get(RevColorSensorV3.class, "ColorSensor");
+        distanceSensor = hardwareMap.get(DistanceSensor.class, "sensor_distance");
     }
 
     @Override
     public void loop() {
+        distance = distanceSensor.getDistance(DistanceUnit.CM);
         telemetry.addData("Color Sensor Sees Purple:", isColorSensorPurple());
         telemetry.addData("Color Sensor Sees Green:", isColorSensorGreen());
         telemetry.addData("Color Sensor Sees:", hue);
+        telemetry.addData("Distance in CM is:", distance);
     }
 }
