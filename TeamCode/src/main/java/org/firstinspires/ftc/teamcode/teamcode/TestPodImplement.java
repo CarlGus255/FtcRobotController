@@ -3,7 +3,6 @@ package org.firstinspires.ftc.teamcode.teamcode;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
-import org.firstinspires.ftc.teamcode.DiffySwervePodImplement;
 
 @TeleOp
 public class TestPodImplement extends OpMode {
