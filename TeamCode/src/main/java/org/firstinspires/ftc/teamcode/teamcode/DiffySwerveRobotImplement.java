@@ -1,7 +1,5 @@
 package org.firstinspires.ftc.teamcode.teamcode;
 
-import org.firstinspires.ftc.teamcode.DiffySwervePodImplement;
-import org.firstinspires.ftc.teamcode.SLAM;
 
 public class DiffySwerveRobotImplement {
 

@@ -6,11 +6,11 @@ import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
 public class SLAM {
-    GoBildaPinpointDriver ppo;
+    ActuatorsSensorsDiffySwerve motors;
     public SLAM (
-            GoBildaPinpointDriver ppo
+            ActuatorsSensorsDiffySwerve motors
     ) {
-        this.ppo = ppo;
+        this.motors = motors;
     }
     double x;
     double y;
@@ -22,16 +22,16 @@ public class SLAM {
     double fieldY;
     double fieldYaw;
     public void resetPPO () {
-        ppo.update();
-        resetX = ppo.getPosX(DistanceUnit.CM);
-        resetY = ppo.getPosY(DistanceUnit.CM);
-        resetYaw = ppo.getHeading(AngleUnit.DEGREES);
+        motors.ppo.update();
+        resetX = motors.ppo.getPosX(DistanceUnit.CM);
+        resetY = motors.ppo.getPosY(DistanceUnit.CM);
+        resetYaw = motors.ppo.getHeading(AngleUnit.DEGREES);
     }
     public void update() {
-        ppo.update();
-        x = ppo.getPosX(DistanceUnit.CM);
-        y = ppo.getPosY(DistanceUnit.CM);
-        yaw = ppo.getHeading(AngleUnit.DEGREES);
+        motors.ppo.update();
+        x = motors.ppo.getPosX(DistanceUnit.CM);
+        y = motors.ppo.getPosY(DistanceUnit.CM);
+        yaw = motors.ppo.getHeading(AngleUnit.DEGREES);
         
         fieldX = x - resetX;
         fieldY = y - resetY;
@@ -46,4 +46,5 @@ public class SLAM {
     public double getFieldYaw () {
         return fieldYaw;
     }
+
 }

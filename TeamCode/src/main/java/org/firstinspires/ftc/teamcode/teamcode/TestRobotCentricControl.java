@@ -3,8 +3,6 @@ package org.firstinspires.ftc.teamcode.teamcode;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
-import org.firstinspires.ftc.teamcode.DiffySwervePodImplement;
-import org.firstinspires.ftc.teamcode.SLAM;
 
 @TeleOp
 public class TestRobotCentricControl extends OpMode {
@@ -33,7 +31,7 @@ public class TestRobotCentricControl extends OpMode {
         motors = new ActuatorsSensorsDiffySwerve();
         motors.init(hardwareMap);
 
-        slam = new SLAM(motors.ppo);
+        slam = new SLAM(motors);
         slam.resetPPO();
 
         leftPod = new DiffySwervePodImplement(motors.leftTopMotor, motors.leftBottomMotor, leftRotationPIDF);

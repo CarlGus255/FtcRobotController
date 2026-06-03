@@ -3,9 +3,6 @@ package org.firstinspires.ftc.teamcode.teamcode;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
-import org.firstinspires.ftc.teamcode.DiffySwervePodDriver;
-import org.firstinspires.ftc.teamcode.PIDFImplement;
-
 @TeleOp
 
 public class DiffySwerveMasterClass extends OpMode {
