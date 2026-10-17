@@ -40,10 +40,10 @@ public class DiffySwervePodPIDTune extends OpMode {
         //Uses dpad up and down to cycle through modes and left and right to change the PID values
         if (pidChange && isleftRotationPID) {
             leftRotationPID.changeMode(gamepad1.dpadRightWasPressed(), gamepad1.dpadLeftWasPressed());
-            leftRotationPID.decreaseConstants(gamepad1.dpadUpWasPressed(), gamepad1.dpadDownWasPressed());
+            leftRotationPID.tuneConstants(gamepad1.dpadUpWasPressed(), gamepad1.dpadDownWasPressed());
         } else if (pidChange && !isleftRotationPID) {
             rightRotationPID.changeMode(gamepad1.dpadRightWasPressed(), gamepad1.dpadLeftWasPressed());
-            rightRotationPID.decreaseConstants(gamepad1.dpadUpWasPressed(), gamepad1.dpadDownWasPressed());
+            rightRotationPID.tuneConstants(gamepad1.dpadUpWasPressed(), gamepad1.dpadDownWasPressed());
         }
 
 

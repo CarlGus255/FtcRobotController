@@ -1,10 +1,12 @@
 package org.firstinspires.ftc.teamcode.teamcode;
 
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 
 @TeleOp
+@Disabled
 public class TestRobotCentricControl extends OpMode {
     DiffySwervePodImplement leftPod;
     DiffySwervePodImplement rightPod;
@@ -24,9 +26,9 @@ public class TestRobotCentricControl extends OpMode {
         rightRotationPIDF = new PIDFImplement();
         yawPIDF = new PIDFImplement();
 
-        leftRotationPIDF.setConstants(0.005, 0, 0, 0, 0.001);
-        rightRotationPIDF.setConstants(0.005, 0, 0, 0, 0.001);
-        yawPIDF.setConstants(0,0,0,0,0.001);
+        leftRotationPIDF.setConstants(0.005, 0, 0, 0, 0, 0.001);
+        rightRotationPIDF.setConstants(0.005, 0, 0, 0, 0, 0.001);
+        yawPIDF.setConstants(0,0,0,0, 0,0.001);
 
         motors = new ActuatorsSensorsDiffySwerve();
         motors.init(hardwareMap);
@@ -54,7 +56,7 @@ public class TestRobotCentricControl extends OpMode {
 
         //Yaw PIDF tuning and telemetry
         yawPIDF.changeMode(gamepad1.dpadRightWasPressed(), gamepad1.dpadLeftWasPressed());
-        yawPIDF.decreaseConstants(gamepad1.dpadUpWasPressed(), gamepad1.dpadDownWasPressed());
+        yawPIDF.tuneConstants(gamepad1.dpadUpWasPressed(), gamepad1.dpadDownWasPressed());
         if (yawPIDF.getMode() % 4 == 0) {
             telemetry.addData("KP is:", yawPIDF.getkP());
         }

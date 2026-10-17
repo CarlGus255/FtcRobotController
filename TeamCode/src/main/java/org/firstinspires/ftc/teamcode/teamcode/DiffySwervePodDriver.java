@@ -31,7 +31,7 @@ public class DiffySwervePodDriver {
     public void init (ActuatorsSensorsDiffySwerve motors, PIDFImplement leftRotationPID) {
         this.motors = motors;
         this.leftRotationPID = leftRotationPID;
-        leftRotationPID.setConstants(0.005,0,0, 0,0.001);
+        leftRotationPID.setConstants(0.005,0,0, 0, 0,0.001);
     }
     //Experimental setting translation and rotation
     public void setTranslation (double translation) {

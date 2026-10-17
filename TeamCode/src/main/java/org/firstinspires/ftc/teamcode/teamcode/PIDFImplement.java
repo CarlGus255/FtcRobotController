@@ -11,6 +11,7 @@ public class PIDFImplement {
     boolean isKI;
     boolean isKD;
     boolean isKF;
+    double intCap;
     double scalingFactor;
 
     public void readMode() {
@@ -36,21 +37,22 @@ public class PIDFImplement {
         }
 
     }
-    public void setConstants (double KP, double KI, double KD, double KF, double ScalingFactor) {
+    public void setConstants (double KP, double KI, double KD, double KF, double intcap, double ScalingFactor) {
         kP = KP;
         kI = KI;
         kD = KD;
         kF = KF;
+        intCap = intcap;
         scalingFactor = ScalingFactor;
     }
     public void changeMode(boolean increase, boolean decrease) {
         if (increase) {
-            mode ++;
+            mode = (mode + 1) % 4; // Caps it between 0 and 3 cleanly
         } else if (decrease) {
-            mode --;
+            mode = (mode - 1 + 4) % 4; // Safely loops backwards without negatives
         }
     }
-    public void decreaseConstants(boolean increase, boolean decrease) {
+    public void tuneConstants(boolean increase, boolean decrease) {
         readMode();
         if (isKP && increase) {
             kP += scalingFactor;
@@ -90,14 +92,19 @@ public class PIDFImplement {
     double integral;
     double derivative;
     double lastError;
+
+    public double getInt () {
+        return integral;
+    }
     public double PIDFOutPut(double error, double deltaTime) {
         proportional = error;
 
         integral += error * deltaTime;
+        integral = Math.max(-intCap, Math.min(intCap, integral));
 
         derivative = (error-lastError)/deltaTime;
         lastError = error;
 
-        return (proportional * kP) + (integral*kI) + (derivative*kD) + (kF);
+        return (proportional * kP) + (integral * kI) + (derivative*kD) + (kF);
     }
 }

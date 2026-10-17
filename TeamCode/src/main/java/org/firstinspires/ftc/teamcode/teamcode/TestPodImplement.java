@@ -1,10 +1,12 @@
 package org.firstinspires.ftc.teamcode.teamcode;
 
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 
 @TeleOp
+@Disabled
 public class TestPodImplement extends OpMode {
 
     DiffySwervePodImplement leftPod;
@@ -14,7 +16,7 @@ public class TestPodImplement extends OpMode {
     @Override
     public void init() {
         leftRotationPIDF = new PIDFImplement();
-        leftRotationPIDF.setConstants(0.005, 0, 0, 0, 0.001);
+        leftRotationPIDF.setConstants(0.005, 0, 0, 0, 0, 0.001);
 
         motors = new ActuatorsSensorsDiffySwerve();
         motors.init(hardwareMap);

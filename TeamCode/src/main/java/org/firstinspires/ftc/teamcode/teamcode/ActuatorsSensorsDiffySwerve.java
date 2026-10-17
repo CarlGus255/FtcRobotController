@@ -4,11 +4,17 @@ import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
 import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.hardware.limelightvision.LLResultTypes;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
+import com.qualcomm.robotcore.hardware.AnalogInput;
+import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
+
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -23,10 +29,15 @@ public class ActuatorsSensorsDiffySwerve {
     DcMotorEx rightBottomMotor;
     GoBildaPinpointDriver ppo;
     Limelight3A limeLight;
-    Servo tilt;
-    Servo pan;
-    double tiltAngle = 0.495;
+    DistanceSensor distanceSensor;
+    CRServo tiltAxon;
+    AnalogInput tiltPot;
+    CRServo panAxon;
+    AnalogInput panPot;
+    double tiltAngle = 0.525;
     double panAngle = 0.52;
+    double panAbs;
+    double tiltAbs;
 
     public void init(HardwareMap hwMap) {
         //Initialize Motors
@@ -54,10 +65,18 @@ public class ActuatorsSensorsDiffySwerve {
 
         limeLight = hwMap.get(Limelight3A.class, "limelight");
 
-        tilt = hwMap.get(Servo.class, "tilt");
-        pan = hwMap.get(Servo.class, "pan");
-        //limeLight.pipelineSwitch(1);
+
+        distanceSensor = hwMap.get(DistanceSensor.class, "dist");
+        //limeLight.pipelineSwitch(2);
         //limeLight.start();
+
+        tiltAxon = hwMap.get(CRServo.class, "tiltAxon");
+        tiltPot = hwMap.get(AnalogInput.class, "tiltPot");
+        panAxon = hwMap.get(CRServo.class, "panAxon");
+        panPot = hwMap.get(AnalogInput.class, "panPot");
+
+
+
     }
 
     public void resetLeftEncoders () {
@@ -107,6 +126,19 @@ public class ActuatorsSensorsDiffySwerve {
     public double getPan() {
         return panAngle;
     }
+    public double getPanAbs () {
+        panAbs = ((0.52 - getPan())* 300) + limeLight.getLatestResult().getTx();
+        return panAbs;
+    }
+    public double getTiltAbs () {
+        tiltAbs = (-(0.525 - getTilt())*300) + limeLight.getLatestResult().getTy();
+        return tiltAbs;
+    }
+    double tiltAbs2;
+    public double getTiltAbs2 () {
+        tiltAbs2 = ((0.525 - getTilt())* 1308.2) + limeLight.getLatestResult().getTy();
+        return tiltAbs2;
+    }
 
     public void changeTilt(double change) {
         tiltAngle = Math.max(0.34, Math.min( 0.7, tiltAngle += change));
@@ -114,11 +146,33 @@ public class ActuatorsSensorsDiffySwerve {
     public void changePan(double change) {
         panAngle = Math.max(0.34, Math.min (0.7, panAngle += change));
     }
+    double dist;
+    public void readDistSens () {
+        dist = distanceSensor.getDistance(DistanceUnit.CM);
+    }
+    public double getDistCm () {
+        return dist;
+    }
+
+    public void setTiltPower (double power) {
+        tiltAxon.setPower(power);
+    }
+    public void setPanPower (double power) {
+        panAxon.setPower(power);
+    }
+
+    public double readTiltPot () {
+        return tiltPot.getVoltage();
+    }
+    public double readPanPot () {
+        return panPot.getVoltage();
+    }
 
 
-    /**
-     * Now on is limelight logic
-     */
+
+        /**
+         * Now on is limelight logic
+         */
 
     public double [] target = new double[3];
     private int ballCount = 0;
@@ -307,9 +361,9 @@ public class ActuatorsSensorsDiffySwerve {
         return total / cluster.balls.size();
     }
     final public double ballRadius = 36;
-    double LLZOffset = 100;
-    double LLXOffset = 50;
-    double LLYOffset = 20;
+    final double LLZOffset = 100;
+    final double LLXOffset = 50;
+    final double LLYOffset = 20;
     double LLPitch = 90;
     double LLYaw = 0;
 
@@ -334,5 +388,141 @@ public class ActuatorsSensorsDiffySwerve {
 
         return new double [] {x, y, radius};
     }
+    public double[] getLLXYDistanceVector (double tx, double ty, double dist) {
+        double radX = Math.toRadians(tx + LLPitch);
+        double radY = Math.toRadians(ty + LLYaw);
 
+
+        return new double [] {};
+    }
+
+
+    /**
+     *
+     * Some calibrations and tests for using an axon with potentiometer feedback
+     *
+     */
+    /*
+    final double tiltMax = 3.2;
+    final double tiltMin = 0;
+    double maxTiltPot;
+    double minTiltPot = 1;
+    double currentTiltPot;
+
+    public void updateTiltPot () {
+        currentTiltPot = readTiltPot();
+    }
+    public void findMaxTiltPot () {
+        if (currentTiltPot > maxTiltPot) {
+            maxTiltPot = currentTiltPot;
+        }
+    }
+    public double getMaxTiltPot () {
+        return maxTiltPot;
+    }
+    public void findMinTiltPot () {
+        if (currentTiltPot < minTiltPot) {
+            minTiltPot = currentTiltPot;
+        }
+    }
+    public double getMinTiltPot () {
+        return minTiltPot;
+    }
+    public void calibrateTilt (double power) {
+        setTiltPower(power);
+        updateTiltPot();
+        findMaxTiltPot();
+        findMinTiltPot();
+    }
+    public double middleTiltPos () {
+        return (tiltMax - tiltMin)/2;
+    }
+    final double panMax = 3.2;
+    final double panMin = 0;
+    double maxPanPot;
+    double minPanPot = 1;
+    double currentPanPot;
+    public void updatePanPot () {
+        currentPanPot = readPanPot();
+    }
+    public void findMaxPanPot () {
+        if (currentPanPot > maxPanPot) {
+            maxPanPot = currentPanPot;
+        }
+    }
+    public double getMaxPanPot () {
+        return maxPanPot;
+    }
+    public void findMinPanPot () {
+        if (currentPanPot < minPanPot) {
+            minPanPot = currentPanPot;
+        }
+    }
+    public double getMinPanPot () {
+        return minPanPot;
+    }
+    public void calibratePan (double power) {
+        setPanPower(power);
+        updatePanPot();
+        findMaxPanPot();
+        findMinPanPot();
+    }
+    public double middlePanPos () {
+        return (panMax-panMin)/2;
+    }
+
+     */
+
+    /**
+     *
+     * LL Image Cropping
+     *
+     */
+    final double panArmLength = 10; // Distance in cm(?)
+    final double tiltArmLength = 10; // Distance in cm(?)
+    double[] offsets = new double[3];
+    public void resetRobotPos() {
+        offsets = robotPos();
+    }
+    public double[] robotPos () {
+        double [] robotPos = new double[3];
+        robotPos[0] = ppo.getPosX(DistanceUnit.CM) - offsets[0];//Robot X
+        robotPos[1] = ppo.getPosY(DistanceUnit.CM) - offsets[1];//Robot X
+        robotPos[2] = ppo.getHeading(AngleUnit.DEGREES) - offsets[2];//Robot X
+
+        return robotPos;
+    }
+    public double[] posLL(double tiltAngle, double panAngle) {
+        double[] posLL = new double [3];
+        posLL[0] = panArmLength * Math.cos(panAngle) + tiltArmLength * Math.cos(tiltAngle) * Math.cos(panAngle); // X coordinate relative to robot, in cm(?)
+        posLL[1] = panArmLength * Math.sin(panAngle) + tiltArmLength * Math.cos(tiltAngle) * Math.sin(panAngle); // Y coordinate relative to robot
+        posLL[2] = tiltArmLength * Math.sin(tiltAngle); // Z coordinate relative to robot
+
+        return posLL;
+    }
+    double[] exactLLPos = new double[3];
+    public double[] exactLLPos (double tiltAngle, double panAngle) {
+        //Calculate the exact X, Y, and Z of LL
+        exactLLPos[0] = posLL(tiltAngle, panAngle)[0] + robotPos()[0] + LLXOffset; // Give the exact X value of the LL relative to the field
+        exactLLPos[1] = posLL(tiltAngle, panAngle)[1] + robotPos()[1] + LLYOffset; // Give the exact Y value of the LL relative to the field
+        exactLLPos[2] = posLL(tiltAngle, panAngle)[2] + LLZOffset; // Give the exact Z value of the LL relative to the field
+
+        return exactLLPos;
+    }
+
+    //Calculate what area of the LL should be cropped out
+    double[] pixelBoundsLL = new double [4];
+    public void calculateLLInputs (double tilt, double pan) {
+        /*
+        if len(llrobot) > 0:
+        upperCrop = llrobot[0]
+        lowerCrop = llrobot[1]
+        rightCrop = llrobot[2]
+        leftCrop = llrobot[3]
+         */
+    }
+    public void updateLLInputs (double tilt, double pan) {
+        calculateLLInputs(tilt, pan);
+        limeLight.updatePythonInputs(pixelBoundsLL[0], pixelBoundsLL[1], pixelBoundsLL[2], pixelBoundsLL[3], 0, 0, 0, 0);
+    }
 }
