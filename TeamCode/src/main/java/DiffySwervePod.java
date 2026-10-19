@@ -48,9 +48,10 @@ public class DiffySwervePod {
                 homingPIDConstants[5]
         );
     }
+    double scale = 1;
     public void driveMotors() {
-        topMotor.setPower(translation + rotation);
-        bottomMotor.setPower(-translation + rotation);
+        topMotor.setPower(Math.max(-1, Math.min(1, translation + rotation))* scale);
+        bottomMotor.setPower(Math.max(-1, Math.min(1, -translation + rotation)) * scale);
     }
     public void debugWheel(double debugTranslation, double debugRotation) {
         topMotor.setPower(debugTranslation + debugRotation);
@@ -206,6 +207,7 @@ public class DiffySwervePod {
             lastState = currentState;
         }
     }
+
     public void vectorPod(double angle, double translation) {
         this.translation = translation;
         setHeading = angle;

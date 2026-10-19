@@ -15,6 +15,7 @@ import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
 import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 
+import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.TouchSensor;
 
 import java.util.ArrayList;
@@ -23,7 +24,6 @@ import java.util.ArrayList;
 public class MotorsBioBuzz {
     BioBuzzDiffySwerve diffy;
     DcMotorEx shooter;
-    CRServo hood;
     DcMotorEx spindex;
     DcMotorEx intake; // this encoder port will be used for external bore encoder
     DcMotorEx turret;
@@ -33,6 +33,7 @@ public class MotorsBioBuzz {
     // CRServo spindex;
     ArrayList<AprilTagReading> aprilTagReadings = new ArrayList<>();
     ColorSensor spindexColor;
+    Servo hood;
 
 
     public void init (HardwareMap hwMap) {
@@ -53,7 +54,7 @@ public class MotorsBioBuzz {
         turret = hwMap.get(DcMotorEx.class, "turret");
         spindex = hwMap.get(DcMotorEx.class, "indexer");
         intake = hwMap.get(DcMotorEx.class, "intake");
-        hood = hwMap.get(CRServo.class, "hood");
+        hood = hwMap.get(Servo.class, "hood");
         indexHomingSwitch = hwMap.get(TouchSensor.class, "indexSwitch");
         spindexColor = hwMap.get(ColorSensor.class, "cs");
         
@@ -465,5 +466,19 @@ public class MotorsBioBuzz {
     }
 
      */
-
+    double hoodPos;
+    double hoodAngle;
+    final double hoodLowPos = 0.5; // servo always set to 0.5 as zero -> set at 15 degrees angle (lower limit)
+    final double hoodUpperPos = 0.5 + ((double) 30 /360); // Up to 30 degrees more
+    public void setHoodAngle (double angle) {
+        hoodPos = (angle/360) + 0.5;
+        hoodAngle = hoodPos * 360;
+        if (hoodAngle < 15) {
+            hoodPos = hoodLowPos;
+        }
+        if (hoodAngle > 45) {
+            hoodPos = hoodUpperPos;
+        }
+        hood.setPosition(hoodPos);
+    }
 }
