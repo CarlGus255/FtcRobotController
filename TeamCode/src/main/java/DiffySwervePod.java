@@ -49,9 +49,31 @@ public class DiffySwervePod {
         );
     }
     double scale = 1;
+    double translationBound = 1.0;
+    double rotationBound = 2.0; // Ensure your kinematics expect rotation to be weighted higher
+    double motorPowerMax = 0.9;
+
     public void driveMotors() {
-        topMotor.setPower(Math.max(-1, Math.min(1, translation + rotation))* scale);
-        bottomMotor.setPower(Math.max(-1, Math.min(1, -translation + rotation)) * scale);
+        double truncatedTranslation = Math.max(-translationBound, Math.min(translationBound, translation));
+        double truncatedRotation = Math.max(-rotationBound, Math.min(rotationBound, rotation));
+
+        double rawTop = truncatedTranslation + truncatedRotation;
+        double rawBottom = -truncatedTranslation + truncatedRotation;
+
+        double maxRequested = Math.max(Math.abs(rawTop), Math.abs(rawBottom));
+
+        if (maxRequested > motorPowerMax) {
+            rawTop = (rawTop / maxRequested) * motorPowerMax;
+            rawBottom = (rawBottom / maxRequested) * motorPowerMax;
+        }
+
+        // 5. Send optimized power to the motor controllers
+        topMotor.setPower(rawTop);
+        bottomMotor.setPower(rawBottom);
+    }
+    public void oldDriveMotors() {
+        topMotor.setPower(translation + rotation);
+        bottomMotor.setPower(translation - rotation);
     }
     public void debugWheel(double debugTranslation, double debugRotation) {
         topMotor.setPower(debugTranslation + debugRotation);
@@ -84,6 +106,11 @@ public class DiffySwervePod {
     boolean initialState;
     public void homePod(double numPoints) {
         resetEncoders();
+
+        optimizedReversed = false;
+        translation = 0;
+        setHeading = 0;
+
         homing = true;
         initialState = homingSwitch.getState();
         lastState = initialState;
@@ -131,7 +158,7 @@ public class DiffySwervePod {
         headingError = setHeading - heading;
 
         // Normalize error to [-180, 180].
-        headingError = ((headingError + 180) % 360 + 360) % 360 - 180;
+        headingError = normalize180(headingError);
         if (!homing) {
             rotation = rotationPID.PIDFOutPut((headingError), deltaTime);
             driveMotors();
@@ -207,11 +234,67 @@ public class DiffySwervePod {
             lastState = currentState;
         }
     }
-
+    /*
     public void vectorPod(double angle, double translation) {
         this.translation = translation;
         setHeading = angle;
 
+    }
+
+     */
+    public void vectorPod(double angle, double requestedTranslation) {
+
+        // Update the current wheel heading
+        computeHeadingDegree();
+
+        // Candidate A: preserve wheel direction
+        double normalTarget = normalize360(angle);
+        double normalError = normalize180(normalTarget - heading);
+
+        // Candidate B: reverse wheel direction
+        double reversedTarget = normalize360(angle + 180);
+        double reversedError = normalize180(reversedTarget - heading);
+
+        double normalErrorAbs = Math.abs(normalError);
+        double reversedErrorAbs = Math.abs(reversedError);
+
+        // Choose the shortest steering path, with hysteresis
+        if (!optimizedReversed) {
+
+            if (reversedErrorAbs + optimizationHysteresis
+                    < normalErrorAbs) {
+                optimizedReversed = true;
+            }
+
+        } else {
+
+            if (normalErrorAbs + optimizationHysteresis
+                    < reversedErrorAbs) {
+                optimizedReversed = false;
+            }
+        }
+
+        // Apply the chosen target and drive direction
+        if (optimizedReversed) {
+            setHeading = reversedTarget;
+            translation = -requestedTranslation;
+        } else {
+            setHeading = normalTarget;
+            translation = requestedTranslation;
+        }
+    }
+    // Tracks which wheel direction is currently selected
+    boolean optimizedReversed = false;
+
+    // Prevents rapid switching when both choices are nearly equal
+    double optimizationHysteresis = 5; // degrees
+
+    private double normalize360(double angle) {
+        return ((angle % 360) + 360) % 360;
+    }
+
+    private double normalize180(double angle) {
+        return ((angle + 180) % 360 + 360) % 360 - 180;
     }
 
 }

@@ -5,6 +5,7 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.DigitalChannel;
 
+import org.firstinspires.ftc.robotcore.external.navigation.UnnormalizedAngleUnit;
 import org.firstinspires.ftc.teamcode.teamcode.CSVLogger;
 
 import java.io.IOException;
@@ -54,6 +55,8 @@ public class TestDiffySwerve extends OpMode {
     boolean fieldCentric;
     double spindexDirection = 0;
     double hoodPos;
+    double intakePower;
+    double indexPower;
 
     @Override
     public void loop() {
@@ -66,39 +69,28 @@ public class TestDiffySwerve extends OpMode {
         if (gamepad1.xWasPressed()) {
             fieldCentric = !fieldCentric;
         }
-        motors.manualSpindex(spindexDirection);
+        motors.runSpindex(spindexDirection);
         if (gamepad1.aWasPressed()) {
             spindexDirection *= -1;
         }
-        if (gamepad2.dpadUpWasPressed()) {
-            swerve.leftPod.scale += 0.1;
-            swerve.rightPod.scale += 0.1;
+
+        if (gamepad2.xWasPressed()) {
+            motors.runSpindexDeg(90);
         }
-        if (gamepad2.dpadDownWasPressed()) {
-            swerve.leftPod.scale -= 0.1;
-            swerve.rightPod.scale -= 0.1;
+        if (gamepad2.yWasPressed()) {
+            motors.runSpindexDeg(-90);
+        }
+        if (gamepad2.bWasPressed()) {
+            motors.homeSpindex();
         }
         telemetry.addData("Driving speed is", swerve.leftPod.scale);
         if (gamepad1.yWasPressed()) {
-            swerve.leftPod.homePod(5);
-            swerve.rightPod.homePod(5);
+            swerve.leftPod.homePod(3);
+            swerve.rightPod.homePod(3);
             homing = true;
         }
         if (homing) {
-            /*
-            telemetry.addData("We are homing", swerve.leftPod.homing);
-            telemetry.addData("Detections", swerve.leftPod.detections);
-            telemetry.addData("Rejections", swerve.leftPod.rejections);
-            telemetry.addData("Sensor says", swerve.leftPod.currentState);
-            telemetry.addData("Home mean value is", swerve.leftPod.homeDetMeanValue);
-            telemetry.addData("Home Center is", swerve.leftPod.centerValue);
-            telemetry.addData("Homing Error is", swerve.leftPod.homingError);
-            if (swerve.leftPod.homingDetections != null) {
-                for (int i = 0; i < swerve.leftPod.homingDetections.size(); i++) {
-                    telemetry.addData("Detection number" + i + "is", swerve.leftPod.homingDetections.get(i));
-                }
-            }
-             */
+
             if (swerve.leftPod.detectedThreshold) {
                 logger.log(swerve.leftPod.heading, swerve.rightPod.heading);
             } else {
@@ -114,8 +106,19 @@ public class TestDiffySwerve extends OpMode {
                 swerve.driveBot(-gamepad1.left_stick_y, -gamepad1.left_stick_x, -gamepad1.right_stick_x * offset);
                 telemetry.addData("Robot Centric","");
             } else if (fieldCentric) {
-                swerve.driveFieldCentric(-gamepad1.left_stick_y, -gamepad1.left_stick_x, -gamepad1.right_stick_x * offset);
+                //swerve.driveFieldCentric(-gamepad1.left_stick_y, -gamepad1.left_stick_x, -gamepad1.right_stick_x * offset);
+                //swerve.driveBotFieldCentricHeadingLock(-gamepad1.left_stick_y, -gamepad1.left_stick_x, deltaTime);
+                //swerve.changeHeading(-gamepad1.right_stick_x * 12);
+                swerve.driveBotFieldCentricDriveChangeLock(-gamepad1.left_stick_y, -gamepad1.left_stick_x, -gamepad1.right_stick_x * offset, deltaTime);
                 telemetry.addData("Field Centric","");
+                telemetry.addData("angRateThresh is", swerve.angRateThresh);
+                if (gamepad2.leftTriggerWasPressed()) {
+                    swerve.angRateThresh -= 0.5;
+                }
+                if (gamepad2.rightTriggerWasPressed()) {
+                    swerve.angRateThresh += 0.5;
+                }
+
             }
             if (gamepad1.leftBumperWasPressed()) {
                 offset -= 1;
@@ -156,18 +159,69 @@ public class TestDiffySwerve extends OpMode {
         if (gamepad2.rightBumperWasPressed()) {
             hoodPos += 0.05;
         }
-        motors.hood.setPosition(hoodPos);
-        telemetry.addData("Hood Position is", motors.hood.getPosition());
-        swerve.updateSwerve(deltaTime);
 
+        //Debug
+        indexPower = gamepad2.right_stick_y;
+        motors.runSpindex(indexPower);
+        
+
+        motors.hood.setPosition(hoodPos);
+
+        //PID Tuning
+        swerve.headingPID.tuneConstants(gamepad2.dpadRightWasPressed(), gamepad2.dpadLeftWasPressed());
+        swerve.headingPID.changeMode(gamepad2.dpadUpWasPressed(), gamepad2.dpadDownWasPressed());
+        if (swerve.headingPID.getMode() % 4 == 0) {
+            telemetry.addData("KP is", swerve.headingPID.getkP());
+        }
+        if (swerve.headingPID.getMode() % 4 == 1) {
+            telemetry.addData("KI is", swerve.headingPID.getkI());
+        }
+        if (swerve.headingPID.getMode() % 4 == 2) {
+            telemetry.addData("KD is", swerve.headingPID.getkD());
+        }
+        if (swerve.headingPID.getMode() % 4 == 3) {
+            telemetry.addData("KF is", swerve.headingPID.getkF());
+        }
+        
+        
         telemetry.addData("Translation is", swerve.leftPod.translation);
         telemetry.addData("Rotaiton is", swerve.leftPod.rotation);
 
         telemetry.addData("Left Pod Heading Degrees is", swerve.leftPod.heading);
 
+
         telemetry.addData("Robot X is", swerve.robotPos[0]);
         telemetry.addData("Robot Y is", swerve.robotPos[1]);
         telemetry.addData("Robot Heading is", swerve.robotPos[2]);
+        telemetry.addData("Angular Rate is", swerve.angularRate());
+
+
+        telemetry.addData("Found Tape", motors.foundTape);
+        telemetry.addData("Is Tape", motors.isTape());
+        telemetry.addData("Is game element", motors.hasGameElement());
+        telemetry.addData("Has pollen", motors.isPollen());
+        /*
+        telemetry.addData("Hue is", motors.csHSV[0]);
+        telemetry.addData("Saturation is", motors.csHSV[1]);
+        telemetry.addData("Value is", motors.csHSV[2]);
+        telemetry.addData("Pollen In Range", motors.inRangeHSV(motors.pollenRangeHSV, motors.csHSV));
+        telemetry.addData("Blue Nectar In Range", motors.inRangeHSV(motors.blueNectarRangeHSV, motors.csHSV));
+        telemetry.addData("Red Nectar In Range", motors.inRangeHSV(motors.redNectarRangeHSV, motors.csHSV));
+        telemetry.addData("Homing Tape In Range", motors.inRangeHSV(motors.homingTapeRangeHSV, motors.csHSV));
+         */
+
+        /*
+        telemetry.addData("Green is", motors.csValue[1]);
+        telemetry.addData("Spindex Homing", motors.spindexHoming);
+        telemetry.addData("Spindex Encoder", motors.spindex.getCurrentPosition());
+        telemetry.addData("Spindex Mode", motors.spindex.getMode());
+         */
+        //telemetry.addData("Spindex set pos is", motors.spindexSetPos);
+        //telemetry.addData("Spindex run power is", motors.runPower);
+
+        motors.update(getRuntime());
+        telemetry.addData("Hood Position is", motors.hood.getPosition());
+        swerve.updateSwerve(deltaTime);
 
         telemetry.update();
     }

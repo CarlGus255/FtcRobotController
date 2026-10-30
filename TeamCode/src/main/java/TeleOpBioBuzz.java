@@ -43,10 +43,10 @@ public class TeleOpBioBuzz extends OpMode {
         /*
         * Controls for indexer
         */
-        telemetry.addData("Red tape found", motors.colorSensorFoundTape());
+        //telemetry.addData("Red tape found", motors.colorSensorFoundTape());
         telemetry.addData("Color sensor HSV[0] is", motors.csHSV[0]);
-        telemetry.addData("RGB red is", motors.spindexColor.red());
-        motors.manualSpindex(gamepad1.left_stick_y);
+        //telemetry.addData("RGB red is", motors.spindexColor.get());
+        motors.runSpindex(gamepad1.left_stick_y);
 
 
         /*
@@ -97,7 +97,7 @@ public class TeleOpBioBuzz extends OpMode {
 
 
         // Updates for end of loop
-        logger.log(motors.getError(), motors.getShooterVelocityRpm(), motors.getSetShooterVelocityRpm(), motors.flyVelInBounds01());
+        //logger.log(motors.getError(), motors.getShooterVelocityRpm(), motors.getSetShooterVelocityRpm(), motors.flyVelInBounds01());
 
         motors.updateTurretPower();
 

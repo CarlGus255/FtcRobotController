@@ -21,7 +21,7 @@ public class TimerImplement {
     public void resetTimer () {
         timeStarted = false;
     }
-    boolean timeMet;
+    public boolean timeMet;
     public boolean setTimer (double runtime, double setTime) {
         startTimer(runtime);
         if (duration < setTime) {

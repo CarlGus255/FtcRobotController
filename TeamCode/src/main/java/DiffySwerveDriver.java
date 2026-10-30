@@ -7,6 +7,7 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.UnnormalizedAngleUnit;
 import org.firstinspires.ftc.teamcode.teamcode.PIDFImplement;
 
 public class DiffySwerveDriver {
@@ -20,6 +21,7 @@ public class DiffySwerveDriver {
     PIDFImplement rightPodRotatePID;
     PIDFImplement leftPodHomingPID;
     PIDFImplement rightPodHomingPID;
+    PIDFImplement headingPID;
     DiffySwervePod leftPod;
     DiffySwervePod rightPod;
     GoBildaPinpointDriver ppo;
@@ -46,6 +48,8 @@ public class DiffySwerveDriver {
         leftHomingPIDConstants = setArrayConstants(0.01, 0.1, 0, 0, 0.05, 0.01);
         rightPodHomingPID = new PIDFImplement();
         rightHomingPIDConstants = setArrayConstants(0.01, 0.1, 0, 0, 0.05, 0.01);
+        headingPID = new PIDFImplement();
+        headingPID.setConstants(0.05, 0.05, 0.01, 0, 0.1, 0.01);
 
         ltm = hwMap.get(DcMotorEx.class, "ltm");
         lbm = hwMap.get(DcMotorEx.class, "lbm");
@@ -73,7 +77,7 @@ public class DiffySwerveDriver {
         ppo = hwMap.get(GoBildaPinpointDriver.class, "ppo");
         ppo.resetPosAndIMU();
         ppo.setOffsets(182, -98, DistanceUnit.MM);
-        robotPos = new double[3];
+        robotPos = new double[4];
 
         leftPodOffsets = new double[2];
         leftPodOffsets[0] = -0.038;
@@ -95,6 +99,7 @@ public class DiffySwerveDriver {
         robotPos[0] = -ppo.getPosY(DistanceUnit.CM);
         robotPos[1] = -ppo.getPosX(DistanceUnit.CM);
         robotPos[2] = ppo.getHeading(AngleUnit.DEGREES);
+        robotPos[3] = ppo.getHeading(UnnormalizedAngleUnit.DEGREES);
     }
     public void vectorBotRough (double angle, double power, double rotation, double angleOffset) {
         leftPod.vectorPod(angle - angleOffset, power + rotation);
@@ -146,6 +151,56 @@ public class DiffySwerveDriver {
                 Math.hypot(rY, rX)
         );
     }
+    private double normalize180(double angle) {
+        return ((angle + 180) % 360 + 360) % 360 - 180;
+    }
+    public void driveBotFieldCentricHeadingLock (double fV, double sV, double deltaTime) {
+        /*
+        calculatedHeading = robotPos[2] + headingOffset;
+        headingError = seekHeading - calculatedHeading;
+        if (headingError < -360) {
+            headingOffset += 360;
+        }
+        if (headingError > 360) {
+            headingOffset -= 360;
+        }
+        calculatedHeading = robotPos[2] + headingOffset;
+        headingError = seekHeading - calculatedHeading;
+         */
+        headingError = seekHeading - robotPos[3];
+        driveFieldCentric(fV, sV, headingPID.PIDFOutPut(headingError, deltaTime));
+    }
+    boolean read;
+    double headingPos;
+    public double angularRate() {
+        return ppo.getHeadingVelocity(UnnormalizedAngleUnit.DEGREES);
+    }
+    double angRateThresh = 10;
+    public void driveBotFieldCentricDriveChangeLock (double fV, double sV, double rotate, double deltaTime) {
+        if (Math.abs(rotate) > deadBand) {
+            if (read) {
+                read = false;
+            }
+            driveFieldCentric(fV, sV, rotate);
+        } else if (!read) {
+            if (Math.abs(angularRate()) > angRateThresh) {
+                driveFieldCentric(fV, sV, rotate);
+            } else {
+                headingPos = robotPos[3];
+                read = true;
+            }
+        } else {
+            seekHeading = headingPos;
+            driveBotFieldCentricHeadingLock(fV, sV, deltaTime);
+        }
+    }
+    double seekHeading;
+    double headingError;
+    double headingOffset;
+    double calculatedHeading;
+    public void changeHeading(double delta) {
+        seekHeading += delta;
+    }
     double robotXV;
     double robotYV;
     public void driveFieldCentric(
@@ -168,5 +223,12 @@ public class DiffySwerveDriver {
 
         // Use your existing, working inverse kinematics
         driveBot(robotForward, robotStrafe, rotation);
+    }
+    double ppoX = 182;
+    double ppoY = -98;
+    public void changePPOOffsets(double changeX, double changeY) {
+        ppoX += changeX;
+        ppoY += changeY;
+        ppo.setOffsets(ppoX, ppoY, DistanceUnit.MM);
     }
 }

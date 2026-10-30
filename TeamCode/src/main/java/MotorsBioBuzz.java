@@ -15,6 +15,8 @@ import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
 import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 
+import com.qualcomm.robotcore.hardware.NormalizedColorSensor;
+import com.qualcomm.robotcore.hardware.NormalizedRGBA;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.TouchSensor;
 
@@ -33,6 +35,7 @@ public class MotorsBioBuzz {
     // CRServo spindex;
     ArrayList<AprilTagReading> aprilTagReadings = new ArrayList<>();
     ColorSensor spindexColor;
+
     Servo hood;
 
 
@@ -56,8 +59,8 @@ public class MotorsBioBuzz {
         intake = hwMap.get(DcMotorEx.class, "intake");
         hood = hwMap.get(Servo.class, "hood");
         indexHomingSwitch = hwMap.get(TouchSensor.class, "indexSwitch");
+        //spindexColor = hwMap.get(ColorSensor.class, "cs");
         spindexColor = hwMap.get(ColorSensor.class, "cs");
-        
 
         intake.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         intake.setMode(DcMotor.RunMode.RUN_USING_ENCODER); // Use this encoder for the spindex encoder
@@ -66,7 +69,8 @@ public class MotorsBioBuzz {
         shooter.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         spindex.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         spindex.setTargetPosition(0);
-        spindex.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        spindex.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        spindex.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
         diffy = new BioBuzzDiffySwerve(hwMap);
 
         turretRange[0] = -200;
@@ -76,25 +80,69 @@ public class MotorsBioBuzz {
         csValue = new int[3];
     }
 
+
+    //Color Sensor Thresholds - H, S, V, % Confidence H, % Confidence S, % Confidence V
+    double[] pollenRangeHSV  = {52.0, 0.554, 0.900, 0.05, 0.10, 0.40};
+    double[] blueNectarRangeHSV = {209.5, 0.646, 0.227, 0.05, 0.15, 0.10};
+    double[] redNectarRangeHSV = {4.0, 0.57, 0.360, 0.05, 0.15, 0.15};
+    double[] homingTapeRangeHSV = {52.5, 0.138, 0.278, 0.05, 0.10, 0.10};
+    //Store cell values - 0 -> nothing, 1 -> pollen, 2 -> red Nectar, 3 -> blue Nectar
+    int[] cellValues = {0, 0, 0, 0};
+    int cellNum = 0;
     double spindexSetPos;
     boolean spindexHoming;
+
     public void homeSpindex() {
+        spindex.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         spindexHoming = true;
     }
-    double spindexHomingPower = 0.1;
+
+    double spindexHomingPower = 0.2;
     boolean foundTape;
     int[] csValue;
     float[] csHSV;
-    public void computeCSHSVValues() {
-        csValue[0] = spindexColor.red();
-        csValue[1] = spindexColor.green();
-        csValue[2] = spindexColor.blue();
 
-        Color.RGBToHSV(csValue[0], csValue[1], csValue[2], csHSV);
+    public boolean inRangeHSV(double[] metric, float[] sample) {
+        boolean hueInRange = false;
+        boolean satInRange = false;
+        boolean valueInRange = false;
+        double hueDiff;
+        double satDiff;
+        double valueDiff;
+        double percentHue = metric[3];
+        double percentSat = metric[4];
+        double percentValue = metric[5];
+        hueDiff = sample[0] - metric[0];
+        if (Math.abs(hueDiff) < (percentHue * 360)) {
+            hueInRange = true;
+        }
+        satDiff = sample[1] - metric[1];
+        if (Math.abs(satDiff) < (percentSat * 1)) {
+            satInRange = true;
+        }
+        valueDiff = sample[2] - metric[2];
+        if (Math.abs(valueDiff) < (percentValue * 1)) {
+            valueInRange = true;
+        }
+        if (hueInRange && satInRange && valueInRange) {
+            return true;
+        } else {
+            return false;
+        }
     }
+    public void computeCSHSVValues() {
+        csValue [0] = spindexColor.red();
+        csValue [1] = spindexColor.green();
+        csValue [2] = spindexColor.blue();
+
+        Color.RGBToHSV(csValue[0],csValue[1], csValue[2], csHSV);
+
+        //Color.RGBToHSV(csValue[0], csValue[1], csValue[2], csHSV);
+    }
+    /*
     boolean colorSensorFoundTape() {
         computeCSHSVValues();
-        if (0 < csHSV[0] && csHSV[0] < 40) {
+        if (35 < csHSV[0] && csHSV[0] < 50) {
             foundTape = true;
         } else {
             foundTape = false;
@@ -102,18 +150,143 @@ public class MotorsBioBuzz {
         return foundTape;
     }
 
+     */
+    double ticksPerRev = 537.7 * 14/10;
+
+    public void setSpindexDeg(double pos) {
+        spindexSetPos = ((pos/360)*ticksPerRev);
+        spindex.setTargetPosition((int) spindexSetPos);
+    }
+    double spindexSetPosDeg;
+    public void runSpindexDeg(double inc) {
+        spindexSetPosDeg += inc;
+    }
+    boolean switching;
+    boolean spindexZereod;
+    double spindexError;
+    int spindexState;
     public void updateSpindex() {
         if (spindexHoming) {
-            spindex.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            computeCSHSVValues();
+            if (spindex.getMode() == DcMotor.RunMode.RUN_TO_POSITION) {
+                spindex.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            }
             spindex.setPower(spindexHomingPower);
+            if (isTape()) {
+                spindex.setPower(0);
+                spindexSetPosDeg = 0;
+                spindex.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+                spindex.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                runSpindexDeg(45);
+                //spindexHoming = false;
+                spindexZereod = true;
+                cellNum = 0;
+            }
+            if (spindexZereod) {
+                spindexError = Math.abs(spindex.getCurrentPosition() - spindexSetPos);
+                if (cellNum <= 3) {
+                    if (spindexError <= 20) {
+                        readCell();
+                        incrementSpindex(1);
+                    }
+                }
+            }
+        }
+        else if (runPower != 0){
+            if (spindex.getMode() == DcMotor.RunMode.RUN_TO_POSITION) {
+                spindex.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            }
+            spindex.setPower(runPower);
+        } else {
+            //Make sure correct mode is set
+            if (spindex.getMode() == DcMotor.RunMode.RUN_USING_ENCODER) {
+                spindex.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            }
+            //Auto rotate when pollen in current slot
+            /*
+            if (Math.abs(spindex.getCurrentPosition() - spindexSetPos) < 20) {
+                if (isPollen() && !switching) {
+                    runSpindexDeg(90);
+                }
+            }
+             */
+            //Set the spindex
+            setSpindexDeg(spindexSetPosDeg);
+            //Fight stalls
+            if (Math.abs(spindex.getCurrentPosition() - spindexSetPos) < 20) {
+                spindex.setPower(0);
+            } else {
+                spindex.setPower(0.9);
+            }
+
         }
     }
-    public void manualSpindex(double power) {
-        spindex.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        spindex.setPower(power);
+    public void readCell() {
+        computeCSHSVValues();
+        // 0 is nothing, 1 is pollen, 2 is red nectar, 3 is blue nectar
+        if (isPollen()) {
+            cellValues[cellNum] = 1;
+        } else if (isRedNectar()) {
+            cellValues[cellNum] = 2;
+        } else if (isBlueNectar()) {
+            cellValues[cellNum] = 3;
+        } else {
+            cellValues[cellNum] = 0;
+        }
     }
-    
-    
+    double runPower;
+    public void runSpindex(double power) {
+        runPower = power;
+    }
+    public boolean isPollen() {
+        return inRangeHSV(pollenRangeHSV, csHSV);
+    }
+    public boolean hasGameElement() {
+        return inRangeHSV(pollenRangeHSV, csHSV) || inRangeHSV(blueNectarRangeHSV, csHSV) || inRangeHSV(redNectarRangeHSV, csHSV);
+    }
+    public boolean isRedNectar() {
+        return inRangeHSV(redNectarRangeHSV, csHSV);
+    }
+    public boolean isBlueNectar() {
+        return inRangeHSV(blueNectarRangeHSV, csHSV);
+    }
+    public boolean isTape() {
+        return inRangeHSV(homingTapeRangeHSV, csHSV);
+    }
+    public void incrementSpindex(int numInc) {
+        runSpindexDeg(90 * numInc);
+        cellNum += 1;
+    }
+    public void decrementSpindex() {
+        runSpindexDeg(-90);
+        cellNum -= 1;
+    }
+    public int cyclesTillNext(int gameElement) {
+        int rotationsTillNext = 5;
+        for (int i = 0; i < cellValues.length; i++) {
+            if (cellValues[cellNum + i] == gameElement && i < rotationsTillNext) {
+                rotationsTillNext = i;
+            }
+        }
+        if (rotationsTillNext != 5) {
+            return rotationsTillNext;
+        }  else {
+            return -1;
+        }
+    }
+    public void selectIntakeEmptyCell() {
+        int cycles = cyclesTillNext(0);
+        if (hasEmpty()) {
+            incrementSpindex(cycles);
+        }
+    }
+    public boolean hasEmpty() {
+        if (cyclesTillNext(0) == -1) {
+            return false;
+        } else {
+            return true;
+        }
+    }
     /*
     public void updateSpindexPower() {
         computeSpidnexError();
@@ -410,7 +583,10 @@ public class MotorsBioBuzz {
     }
 
      */
-
+    /**
+     * Old Shooter Code attempt ig
+     */
+/*
     final double shooterTicksPerRad = 23.09;
     double shooterVelocityRad;
     double optimalAngleDeg = 45;
@@ -456,6 +632,8 @@ public class MotorsBioBuzz {
             return 0;
         }
     }
+
+ */
     boolean isTilt;
     public boolean hiveIsTilted () {
         return isTilt;
@@ -480,5 +658,46 @@ public class MotorsBioBuzz {
             hoodPos = hoodUpperPos;
         }
         hood.setPosition(hoodPos);
+    }
+
+    double initLaunchVel;
+    double shooterRpm;
+    public void updateShooter(double xDist, double yDist) {
+        /*
+
+
+         */
+
+    }
+    double g = 9.81;
+    double angle;
+    public void updateLaunchAngle(double xDist, double yDist) {
+        shooterRpm = shooter.getVelocity() * 2.143;
+        initLaunchVel = 0.003768 * shooterRpm;
+
+        double sqrtContents = (initLaunchVel*initLaunchVel*initLaunchVel*initLaunchVel) - (g * g * xDist * xDist) + (2 * yDist * initLaunchVel * initLaunchVel);
+        double numerator = (initLaunchVel*initLaunchVel) - Math.sqrt(sqrtContents);
+        double denominator = g * xDist;
+        double quotient = numerator/denominator;
+
+        angle = Math.atan(quotient);
+
+        setHoodAngle(angle);
+    }
+    double maxHeight;
+    public void updateShooterRPM(double xDist, double yDist) {
+        maxHeight = yDist + 0.2;
+        double sqrt = 2 * maxHeight/g;
+        double divisor = 2 * Math.sqrt(sqrt);
+        //double square =
+    }
+
+
+
+    public void update(double currentTime) {
+        updateDeltaTime(currentTime);
+        updateSpindex();
+        //updateShooterVel();
+        //updateTurretPower();
     }
 }
